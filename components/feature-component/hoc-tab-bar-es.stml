@@ -1,0 +1,52 @@
+<template>
+	<view class="tab-bar">
+		<view class="tab-item" v-for="(item,index) in tabList" :key="index">
+			<image class="tab-icon" :src="item.icon" />
+			<text class="tab-text">{item.msg}</text>
+		</view>
+
+
+	</view>
+</template>
+<script>
+export default {
+	name: 'hoc-tab-bar-es',
+	apiready() {//like created
+
+	},
+	data() {
+		return {
+			tabList: this.props.list || [
+				{ icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/1a783fd8cefbcf922bf9b4caf07e32c8.png", msg: "首页" },
+				{ icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/69e2abcc61acf7cdb016c5f596468440.png", msg: "案例" },
+				{ icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/dff7bd667058061f7c3106bf0035a5f8.png", msg: "加盟代理" },
+			]
+		}
+	},
+	methods: {
+
+	}
+}
+</script>
+<style>
+.tab-bar {
+	flex-direction: row;
+	padding: 3px 0;
+	width: 100%;
+	height: 60px;
+	background-color: #fff;
+}
+.tab-item {
+	flex: 1;
+	justify-content: space-around;
+	align-items: center;
+}
+.tab-text {
+	font-size: 11px;
+	color: #666;
+}
+.tab-icon {
+	width: 25px !important;
+	height: 25px;
+}
+</style>

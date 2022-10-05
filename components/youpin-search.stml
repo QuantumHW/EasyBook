@@ -1,0 +1,415 @@
+<template>
+    <view class="youpin-search-container" style={statusBarStyle}>
+        <view class="youpin-search-search_container">
+            <view class="youpin-search-input_container">
+                <view class="youpin-search-search_icon"></view>
+                <input id="input" class="youpin-search-search_placeholder" type="text" value={keywords} placeholder={placeholder} confirmType="search" onconfirm={this.submitInput} oninput={this.input} />
+                <view class="youpin-search-cha_icon" v-if="keywords" onclick={this.cancelInput}></view>
+            </view>
+            <text class="youpin-search-submit_text" onclick={this.closePage}>取消</text>
+        </view>
+
+        <!-- 历史搜索关键词 -->
+        <scroll-view class="youpin-search-content" show-scrollbar="false" scroll-y="true" onscroll={this.onscroll}>
+            <view class="youpin-search-guess_container youpin-search-p_b_50" v-if="historyKeywords.length > 0">
+                <view class="youpin-search-guess_text_view" v-for="(item,index) in historyKeywords" onclick={this.searchText} data-text={item}>
+                    <view class="youpin-search-history_icon"></view>
+                    <text class="youpin-search-guess_text">{item}</text>
+                    <view class="youpin-search-del_icon" onclick="delItem" data-index={index}></view>
+                </view>
+
+                <view class={'youpin-search-del_view' + (showTools ? ' youpin-search-show' : ' youpin-search-none' )}>
+                    <text class="youpin-search-del_text" onclick="clearHistory" v-if="showDelHistory">点击清空历史记录</text>
+                    <text class="youpin-search-del_text" onclick="showAllHistory" v-else>全部搜索记录</text>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+export default {
+    name: "youpin-search",
+    props: {
+        placeholder: String,
+        keywords: String,
+        hiddenNum: Number
+    },
+    apiready() {},
+    data() {
+        return {
+            hiddenNum: 5,
+            historyCacheKey: "youpin_search_history_data",
+            statusBarStyle: "",
+            showTools: false,
+            showDelHistory: false,
+            keywords: "",
+            placeholder: "请输入搜索关键词",
+            historyKeywords: []
+        };
+    },
+    methods: {
+        /**
+         * 搜索关键词
+         */
+        searchText(e) {
+            var text = e.currentTarget.dataset.text;
+            this.submitInput(text);
+        },
+        /**
+         * 搜索提交
+         */
+        submitInput(text) {
+            var that = this;
+            var keywords = typeof text == "string" ? text : this.data.keywords;
+            var placeholder_text = that.data.placeholder;
+            var default_placeholder_text = that.data.defaultPlaceholder;
+            keywords = keywords.trim();
+
+            if (!keywords) {
+                this.fire("emptykeywords", {});
+                this.openKeyboard();
+                return;
+            }
+
+            // 读取历史搜索记录
+            var history_cache_key = this.data.historyCacheKey;
+            var history_keywords = that.get(history_cache_key);
+            history_keywords = history_keywords || [];
+            // // 移除之前已经存在的同条记录
+            this.removeArrItem(history_keywords, keywords);
+            // // 存入缓存
+            history_keywords.unshift(keywords);
+            that.set(history_cache_key, history_keywords);
+
+            this.fire("submit", { text: keywords });
+
+            // 记录历史搜索记录
+            setTimeout(() => {
+                that.data.keywords = "";
+                var show_all = this.data.showDelHistory ? true : false;
+                that.historyKeywordsInit(history_keywords, show_all);
+            }, 300);
+        },
+        /**
+         * 清空历史记录
+         */
+        clearHistory() {
+            var that = this;
+            var params = {
+                title: "注意",
+                msg: "您确定要清空历史搜索记录吗？"
+            };
+            api.confirm(params, function(ret, err) {
+                var index = ret.buttonIndex;
+                if (index == 2) {
+                    api.removePrefs({
+                        key: that.data.historyCacheKey
+                    });
+                    that.data.historyKeywords = [];
+                    that.data.showTools = false;
+                    that.data.showDelHistory = false;
+                }
+            });
+        },
+        /**
+         * 展开全部搜索记录
+         */
+        showAllHistory() {
+            this.data.showDelHistory = true;
+            var history_cache_key = this.data.historyCacheKey;
+            var history_keywords = this.get(history_cache_key);
+            this.historyKeywordsInit(history_keywords, true);
+        },
+        /**
+         * 输入事件
+         */
+        input(e) {
+            var val = e.detail.value;
+            if (this.data.keywords.length == 0) {
+                val = val.trim();
+            }
+            this.data.keywords = val;
+        },
+        /**
+         * 历史搜索初始化
+         */
+        historyKeywordsInit(history_keywords, show_all) {
+            history_keywords = history_keywords || [];
+
+            // 是否显示工具栏
+            if (history_keywords.length > this.data.hiddenNum) {
+                this.data.showTools = true;
+            } else {
+                this.data.showTools = false;
+            }
+
+            // 渲染最新数组
+            if (!show_all) {
+                history_keywords = history_keywords.slice(
+                    0,
+                    this.data.hiddenNum
+                );
+            }
+            this.data.historyKeywords = history_keywords;
+        },
+        /**
+         * 移除某个元素
+         */
+        removeArrItem(arr, item) {
+            var index = -1;
+            for (var x in arr) {
+                if (item == arr[x]) {
+                    index = x;
+                    break;
+                }
+            }
+
+            if (index > -1) {
+                arr.splice(index, 1);
+            }
+
+            return arr;
+        },
+        /**
+         * 删除指定记录
+         */
+        delItem(e) {
+            var index = e.currentTarget.dataset.index;
+
+            var history_cache_key = this.data.historyCacheKey;
+            var history_keywords = this.get(history_cache_key);
+            history_keywords.splice(index, 1);
+            this.set(history_cache_key, history_keywords);
+            var show_all = this.data.showDelHistory ? true : false;
+            this.historyKeywordsInit(history_keywords, show_all);
+
+            if (history_keywords.length == 0) {
+                this.data.showTools = false;
+                this.data.showDelHistory = false;
+            }
+            if (history_keywords.length <= this.data.hiddenNum) {
+                this.data.showTools = false;
+            }
+        },
+        /**
+         * 清空关键词
+         */
+        cancelInput() {
+            this.data.keywords = "";
+            this.openKeyboard();
+        },
+        /**
+         * 唤起键盘
+         */
+        openKeyboard() {
+            $("#input").focus();
+        },
+        /**
+         * 关闭当前页
+         */
+        closePage() {
+            this.fire("close", {});
+        },
+        /**
+         * 获取缓存
+         */
+        get(name) {
+            if (!name) return "";
+
+            var val = api.getPrefs({
+                sync: true,
+                key: name
+            });
+
+            try {
+                return val ? JSON.parse(val) : "";
+            } catch (error) {
+                return val;
+            }
+        },
+        /**
+         *  设置缓存
+         */
+        set(name, val) {
+            if (!name || !val) return;
+
+            if (typeof val == "object") {
+                val = JSON.stringify(val);
+            }
+
+            api.setPrefs({
+                key: name,
+                value: val
+            });
+        },
+        /**
+         * 删除缓存
+         */
+        del(name) {
+            if (!name) return;
+
+            api.removePrefs({
+                key: name
+            });
+        }
+    },
+    installed() {
+        var that = this;
+
+        // 修复顶部状态栏样式
+        api.setStatusBarStyle({ style: "dark" });
+
+        var height = api.safeArea.top;
+        height += 5;
+        var style = "padding-top:" + height + "px;";
+        that.data.statusBarStyle = style;
+
+        if (this.props.placeholder) {
+            that.data.placeholder = this.props.placeholder;
+        }
+        if (this.props.keywords) {
+            that.data.keywords = this.props.keywords;
+        }
+        if (this.props.hiddenNum) {
+            that.data.hiddenNum = this.props.hiddenNum;
+        }
+
+        // 唤起键盘
+        that.openKeyboard();
+
+        // 初始化历史搜索关键词
+        var history_cache_key = this.data.historyCacheKey;
+        var history_keywords = that.get(history_cache_key);
+        that.historyKeywordsInit(history_keywords);
+    }
+};
+</script>
+<style>
+.youpin-search-container {
+    height: 100%;
+}
+.youpin-search-none {
+    display: none;
+}
+.youpin-search-show {
+    display: flex;
+}
+/* 搜索区 */
+.youpin-search-search_container {
+    height: 45px;
+    padding: 0 15px;
+    display: flex;
+    flex-direction: row;
+}
+.youpin-search-input_container {
+    flex: 1;
+    height: 32px;
+    border-radius: 15px;
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    padding-right: 10px;
+    border: 1px solid #fff;
+    background-color: #fff;
+}
+.youpin-search-search_icon {
+    width: 14px;
+    height: 100%;
+    background-image: url(../../image/search_icon.png);
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: 14px;
+    margin-left: 15px;
+}
+.youpin-search-cha_icon {
+    background-image: url(../../image/clear_icon.png);
+    width: 32px;
+    height: 32px;
+    background-size: 18px 18px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+.youpin-search-search_placeholder {
+    flex: 1;
+    color: #333;
+    font-size: 14px;
+    height: 32px;
+    line-height: 32px;
+    margin-left: 6px;
+    border: none;
+}
+.youpin-search-s_input_ios {
+    flex: 1;
+}
+.youpin-search-submit_text {
+    color: #999;
+    font-size: 16px;
+    width: 40px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    margin-left: 10px;
+}
+/* 内容区 */
+.youpin-search-content {
+    flex: 1;
+}
+/* 搜索词自动补充 */
+.youpin-search-guess_container {
+    flex-direction: column;
+}
+.youpin-search-guess_text_view {
+    padding-left: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 50px;
+    border-bottom: 1px solid #f1f1f1;
+    background-color: #fff;
+}
+.youpin-search-guess_text {
+    flex: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    font-size: 14px;
+    color: #666;
+    padding-right: 10px;
+    text-align: left;
+}
+.youpin-search-del_icon {
+    width: 45px;
+    height: 45px;
+    background-image: url(../../image/del_icon.png);
+    background-position: center;
+    background-size: 13px 13px;
+    background-repeat: no-repeat;
+}
+.youpin-search-p_b_50 {
+    padding-bottom: 50px;
+}
+.youpin-search-history_icon {
+    width: 15px;
+    height: 15px;
+    background-image: url(../../image/history_icon.png);
+    background-position: center;
+    background-size: 100% 100%;
+    margin-right: 10px;
+}
+.youpin-search-del_view {
+    padding-left: 15px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 50px;
+    border-bottom: 1px solid #f1f1f1;
+    background-color: #fff;
+    border-bottom: 0;
+}
+.youpin-search-del_text {
+    flex: 1;
+    font-size: 14px;
+    color: #666;
+    background-image: none;
+    text-align: center;
+}
+</style>

@@ -1,0 +1,230 @@
+<template>
+    <view class="hoc-classlist-hfo">
+        <scroll-view scroll-y class="hoc-classlist-hfo-left-category">
+            <view class="hoc-classlist-hfo-item" :style="this.data.activeIndex === index ? leftItemActiveStyle : leftItemStyle"
+              :key="item.id || index" v-for="(item,index) of categoryNames" @click="onLeftItemClick(index, item)">
+            <text class="hoc-classlist-hfo-text" :style="this.data.activeIndex === index ? leftItemActiveFontStyle : leftItemFontStyle">
+                {{ item }}
+            </text>
+        </view>
+        </scroll-view>
+        <scroll-view scroll-y scroll-with-animation class="hoc-classlist-hfo-right-list flex-1" id="right-list" @scroll="onScroll" scroll-top={scrollTo}>
+            <view v-for="(item,index) in this.props.data" id={this.categoryNames[index]}>
+                <view>
+                    <text :style="rightSectionTitleStyle">{{ categoryNames[index] }}</text>
+                </view>
+                <view v-if="item.length">
+                    <view class="hoc-classlist-hfo-goods-item flex-h" v-for="(subItem, subIdx) in item"  @click="onRightCellClick(subItem, subIdx)">
+                        <img class="hoc-classlist-hfo-goods-pic" mode="aspectFill" src={{subItem.thumbnail}} alt=""/>
+                        <view class="hoc-classlist-hfo-goods-info flex-1">
+                            <text class="flex-1" :style="rightItemNameStyle">{{ subItem.name }}</text>
+                            <view class="flex-h">
+                                <text :style="rightItemPriceSignalStyle">¥</text>
+                                <text class="flex-1" :style="rightItemPriceNumStyle">{{ subItem.curt_price.toFixed(2) }}</text>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                <view v-else class="hoc-classlist-hfo-goods-empty flex flex-center">
+                    <text :style="rightItemEmptyFontStyle">{{this.props.emptyTitle ? this.props.emptyTitle : '当前分类下暂无商品'}}</text>
+                    <text :style="rightItemEmptyFontStyle">{{this.props.emptySubTitle ? this.props.emptySubTitle : 'There is no goods in this classification'}}</text>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+
+export default {
+    name: 'hoc-classlist-hfo',
+    components: {},
+    data() {
+        return {
+            CD: new Date().getTime(),
+            activeIndex: 0,
+            scrollTo: 0,
+        }
+    },
+    install() {
+        if(typeof this.props.defaultIndex === 'number') {
+            this.data.activeIndex = this.props.defaultIndex;
+        }
+    },
+    computed: {
+        leftItemStyle() {
+            const { leftItemBgColor = '#ffffff'} = this.props;
+            return 'background:' + leftItemBgColor + ';';
+        },
+        leftItemActiveStyle() {
+            const { leftItemActiveBgColor = '#f8f8f8'} = this.props;
+            return 'background:' + leftItemActiveBgColor + ';';
+        },
+        leftItemFontStyle() {
+            const { leftItemFontColor = '#666666', leftItemFontWeight = 'normal'} = this.props;
+            return 'color:' + leftItemFontColor + ';font-weight:' + leftItemFontWeight;
+        },
+        leftItemActiveFontStyle() {
+            const { leftItemActiveFontColor = '#333333', leftItemActiveFontWeight = 'bold'} = this.props;
+            return 'color:' + leftItemActiveFontColor  + ';font-weight:' + leftItemActiveFontWeight;
+        },
+        rightSectionTitleStyle() {
+            const { rightSectionTitleFontColor = '#333333', rightSectionTitleFontSize = '13px', rightSectionTitleLineHeight = '18px', rightSectionTitleFontWeight = 500, rightSectionTitleHeight = '18px'} = this.props;
+            return 'color:' + rightSectionTitleFontColor  + ';font-size:' + rightSectionTitleFontSize + ';line-height:' + rightSectionTitleLineHeight + ';font-weight:' + rightSectionTitleFontWeight + ';height:' + rightSectionTitleHeight;
+        },
+        rightItemNameStyle() {
+            const { rightItemNameFontColor = '#333333', rightItemNameFontSize = '14px', rightItemNameFontWeight = 500, rightItemNameLineHeight = '20px'} = this.props;
+            return 'color:' + rightItemNameFontColor  + ';font-size:' + rightItemNameFontSize + ';font-weight:' + rightItemNameFontWeight+ ';line-height:' + rightItemNameLineHeight;
+        },
+        rightItemPriceSignalStyle() {
+            const { rightItemPriceSignalFontColor = '#FE5760', rightItemPriceSignalFontSize = '12px', rightItemPriceSignalFontWeight = 500, rightItemPriceSignalLineHeight = '22px'} = this.props;
+            return 'color:' + rightItemPriceSignalFontColor  + ';font-size:' + rightItemPriceSignalFontSize + ';font-weight:' + rightItemPriceSignalFontWeight+ ';line-height:' + rightItemPriceSignalLineHeight;
+        },
+        rightItemPriceNumStyle() {
+            const { rightItemPriceNumFontColor = '#FE5760', rightItemPriceNumFontSize = '15px', rightItemPriceNumFontWeight = 500} = this.props;
+            return 'color:' + rightItemPriceNumFontColor  + ';font-size:' + rightItemPriceNumFontSize + ';font-weight:' + rightItemPriceNumFontWeight;
+        },
+        rightItemEmptyFontStyle() {
+            const { rightItemEmptyFontColor = '#AAAAAA', rightItemEmptyFontSize = '11px'} = this.props;
+            return 'color:' + rightItemEmptyFontColor  + ';font-size:' + rightItemEmptyFontSize;
+        },
+        // 使用 v-for 遍历对象的时候 暂时使用计算替代
+        categoryNames() {
+            return Object.keys(this.props.data);
+        },
+        offsetList() {
+            const goodsHeight = 90;
+            const emptyHeight = 88;
+            const goodsNameHeight = 18;
+            let tList = [0];
+            let tOffset = 0;
+            for (const category in  this.props.data) {
+                let goodsLength =  this.props.data[category].length;
+                tOffset += (goodsLength ? goodsLength * goodsHeight : emptyHeight) + goodsNameHeight
+                tList.push(tOffset);
+            }
+            return tList;
+        },
+    },
+    methods: {
+        onLeftItemClick(index) {
+            if(this.data.activeIndex === index) return;
+            this.data.activeIndex = index;
+            this.data.CD = new Date().getTime() + 500; // 手动切换分类后需要锁定500毫秒 避免右侧scroll-view滚动时带来次生问题
+            this.data.scrollTo = this.offsetList[index];
+            if(typeof this.props.onMenuChange === 'function') {
+                this.props.onMenuChange(index);
+            }
+        },
+        onScroll(e) {
+            const y = (!window.api || !window.api.uiMode) ? e.detail.scrollTop : e.detail.y;
+
+            for (let i = 0; i < this.offsetList.length; i++) {
+                if (i) {// 第一个不判断
+                    if (y >= this.offsetList[i - 1] && y < this.offsetList[i]) {//判断是否在区间内
+                        if (new Date().getTime() > this.data.CD) {//冷却CD已经不存在
+                            this.data.activeIndex = i - 1; //设置左边的高亮
+                        }
+                    }
+                }
+            }
+        },
+        onRightCellClick(item, idx) {
+            // 右侧滚动列表内单元格点击响应事件
+            console.log('右侧菜单序号' + idx +'单元格被点击了');
+            if(typeof this.props.onRightItemClick === 'function') {
+                this.props.onRightItemClick(item, idx);
+            }
+        }
+    }
+}
+</script>
+
+<style scoped>
+.hoc-classlist-hfo {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+}
+
+.flex-h {
+    -webkit-box-orient: horizontal;
+    -webkit-flex-flow: row;
+    flex-flow: row;
+}
+
+.flex-1 {
+    -webkit-box-flex: 1;
+    -webkit-flex: 1;
+    flex: 1;
+}
+
+.hoc-classlist-hfo-left-category {
+    width: 110px;
+    background: #F8F8F8;
+}
+
+
+.hoc-classlist-hfo-item {
+    width: 100%;
+    height: 50px;
+    justify-content: center;
+}
+
+.hoc-classlist-hfo-text {
+    line-height: 50px;
+    text-align: center;
+    font-size: 13px;
+}
+
+.hoc-classlist-hfo-right-list {
+    padding: 10px;
+}
+
+.hoc-classlist-hfo-goods-item {
+    margin: 10px 0;
+}
+
+.hoc-classlist-hfo-goods-info {
+    margin: 0 5px 0 10px;
+}
+
+.hoc-classlist-hfo-goods-pic {
+    width: 70px;
+    height: 70px;
+    border-radius: 5px;
+}
+
+.hoc-classlist-hfo-goods-name {
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+    color: #333333;
+}
+
+.hoc-classlist-hfo-goods-price-signal {
+    font-size: 12px;
+    font-weight: 500;
+    color: #FE5760;
+    line-height: 22px;
+}
+
+.hoc-classlist-hfo-goods-price-num {
+    font-size: 15px;
+    font-weight: 500;
+    color: #FE5760;
+}
+
+.hoc-classlist-hfo-goods-empty {
+    height: 68px;
+    background: #f9f9f9;
+    margin: 10px;
+    border-radius: 5px;
+}
+
+.hoc-classlist-hfo-goods-empty-text {
+    color: #aaa;
+    font-size: 11px;
+}
+
+</style>

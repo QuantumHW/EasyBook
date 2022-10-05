@@ -1,0 +1,118 @@
+<!--首页-名师团队列表-->
+<template>
+	<view class="main__teacher">
+		<view class="main__teacher--title">
+			<text class="main__teacher--title-line"></text>
+			<text class="main__teacher--title-text">{{moduleTitle}}</text>
+		</view>
+		<scroll-view class="main__teacher-con" scroll-x :show-scrollbar="false">
+			<view class="main__teacher--item" :key="item.name" v-for="item in teacherList" @click="handleClick(item)">
+				<img :src="item.thumb" class="main__teacher--item-img" />
+				<text class="main__teacher--item-name">{{ item.name }}</text>
+				<text class="main__teacher--item-introduction">{{ item.introduction }}</text>
+			</view>
+		</scroll-view>
+	</view>
+</template>
+<script>
+const teacher_teams = [
+	{
+		"name": "张奕宏",
+		"thumb": "http://a0a67a2d94d23442aaa3.qiniucdn.apicloud-system.com/apicloud/ecfbd68a819ec1b3bb89b2bdf84b538a.png",
+		"introduction": "10余年雅思教龄"
+	},
+	{
+		"name": "王明云",
+		"thumb": "http://a0a67a2d94d23442aaa3.qiniucdn.apicloud-system.com/apicloud/033f255b0d3b730fdfb45275c8066c08.png",
+		"introduction": "12余年托福教龄"
+	},
+	{
+		"name": "周宇航",
+		"thumb": "http://a0a67a2d94d23442aaa3.qiniucdn.apicloud-system.com/apicloud/033f255b0d3b730fdfb45275c8066c08.png",
+		"introduction": "近5年雅思教龄"
+	}
+]
+export default {
+	name: 'hoc-teacher-team-et',
+	data() {
+		return {
+			moduleTitle: this.props.moduleTitle !== undefined ? this.props.moduleTitle : "名师团队",
+			teacherList: this.props.teacherList || teacher_teams
+		}
+	},
+	methods: {
+		handleClick(item) {
+			this.fire('itemClick', item)
+		}
+	}
+}
+</script>
+<style>
+.main__teacher {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	padding: 16px;
+	background: #fff;
+	margin-bottom: 10px;
+}
+.main__teacher--title {
+	margin-bottom: 16px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+}
+.main__teacher--title-line {
+	width: 4px;
+	height: 18px;
+	background: #f1c694;
+	margin-right: 8px;
+	border-radius: 4px;
+}
+.main__teacher--title-text {
+	font-size: 18px;
+	font-weight: bold;
+	color: #333;
+}
+.main__teacher-con {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+}
+.main__teacher--item {
+	width: 120px;
+	padding: 16px 0;
+	background: #ffffff;
+	border: 1px solid #f0f0f0;
+	box-shadow: 1px 1px 6px #e2e0e0;
+	border-radius: 3px;
+	margin: 0 5px;
+	justify-content: center;
+	align-items: center;
+	flex-shrink: 0;
+	display: inline-flex;
+}
+.main__teacher--item-img {
+	height: 50px;
+	width: 50px;
+	border-radius: 50%;
+}
+.main__teacher--item-name {
+	color: #333;
+	font-size: 14px;
+	margin: 12px 0;
+	font-weight: bold;
+}
+.main__teacher--item-introduction {
+	color: #999;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	text-align: center;
+	width: 110px;
+	white-space: nowrap;
+}
+</style>

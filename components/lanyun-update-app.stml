@@ -1,0 +1,143 @@
+<template name='tpl'>
+	<view class="lanyun-update-app" v-show="show">
+		<view class="lanyun-update-app-warp">
+			<image mode="widthFix" class="lanyun-update-app-img" src={( this.props.url ? this.props.url : '../../') + 'image/'+(this.props.type ? this.props.type : 'style1')+'.png'}></image>
+			<text v-if="this.props.title" class="lanyun-update-app-banben" v-text="this.props.title"></text>
+			<scroll-view class="lanyun-update-app-box">
+				<rich-text class="lanyun-update-app-box-text" v-if="content" nodes={content}></rich-text>
+				<!-- <text class="lanyun-update-app-box-text" v-if="this.props.updateText" v-html="this.props.updateText"></text> -->
+			</scroll-view>
+			<view class={'lanyun-update-app-btn-one ' + (this.props.type ? 'lanyun-update-app-btn-one-'+this.props.type : 'lanyun-update-app-btn-one-style1')} @click="clickBtn(0)"><text class="lanyun-update-app-btn-one-text" v-text="buttons[0]"></text></view>
+			<view class="lanyun-update-app-btn-two" @click="clickBtn(1)"><text class={'lanyun-update-app-btn-two-text ' + (this.props.type ? 'lanyun-update-app-btn-two-text-'+this.props.type : 'lanyun-update-app-btn-two-text-style1')} v-text="buttons[1]"></text></view>
+		</view>
+	</view>
+</template>
+<script>
+export default {
+	name: 'lanyun-update-app',
+	data() {
+		return {
+			show:true,
+			buttons:[
+				'立即升级','忽略本次'
+			],
+			content:''
+		}
+	},
+	mounted() {
+		if(Array.isArray(this.props.buttons)){
+			this.buttons =  this.props.buttons;
+		}
+		this.content = this.props.content;
+	},
+	methods: {
+		clickBtn(index) {
+			this.fire('closeCall', index);
+			this.show = false;
+		}
+	},
+	props: {
+		type:String, //窗口风格
+		title:String, //版本号
+		updateText:String, //更新版本的文字说明
+		url:String, //指向根目录的前缀
+	}
+}
+</script>
+
+<style scoped>
+
+	.lanyun-update-app{
+		width: 100%;
+		height: 100%;
+		position: absolute;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0, 0, 0, 0.5);
+		z-index: 999;
+	}
+	.lanyun-update-app-warp{
+		width: 275px;
+		background: #ffffff;
+		border-radius: 10px;
+		align-items: center;
+	}
+
+	.lanyun-update-app-img{
+		width: 275px;
+		height: 120px;
+	}
+
+	.lanyun-update-app-banben{
+		font-size: 15px;
+		color: #333;
+		line-height: 30px;
+		text-align: center;
+	}
+
+	.lanyun-update-app-box{
+		flex: 1;
+		padding: 10px 20px;
+		box-sizing: border-box;
+		width: 100%;
+		max-height: 120px;
+		overflow-y: auto;
+		margin-bottom: 20px;
+	}
+
+	.lanyun-update-app-box-text{
+		font-size: 13px;
+		margin-bottom: 10px;
+		max-height: 120px;
+		width: 100%;
+	}
+
+	.lanyun-update-app-btn-one{
+		width: 240px;
+		height: 40px;
+		border-radius: 20px;
+	}
+
+	.lanyun-update-app-btn-one-style1{
+		background: #16BA89;
+	}
+	.lanyun-update-app-btn-one-style2{
+		background: #3865E4;
+	}
+	.lanyun-update-app-btn-one-style3{
+		background: #FF7900;
+	}
+
+	.lanyun-update-app-btn-one-text{
+		color: #ffffff;
+		text-align: center;
+		font-size: 14px;
+		line-height: 40px;
+	}
+
+	.lanyun-update-app-btn-two{
+		width: 240px;
+		height: 40px;
+		border-radius: 50px;
+		background: #ffffff;
+		margin: 10px 0;
+	}
+
+	.lanyun-update-app-btn-two-text{
+		
+		text-align: center;
+		font-size: 14px;
+		line-height: 40px;
+	}
+
+	.lanyun-update-app-btn-two-text-style1{
+		color: #16BA89;
+	}
+	.lanyun-update-app-btn-two-text-style2{
+		color: #3865E4;
+	}
+	.lanyun-update-app-btn-two-text-style3{
+		color: #FF7900;
+	}
+
+</style>
