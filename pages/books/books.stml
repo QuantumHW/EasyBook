@@ -1,0 +1,116 @@
+<template>
+    <view class="view_1">
+        <view>
+            <hoc-header-bar-et title="所有图书" isBack ononBack={this.back}></hoc-header-bar-et>
+        </view>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces scroll-enabled="true" enable-back-to-top paging-enabled={false}>
+            <view class="view_2" v-for="(item, index) in allbooks">
+                <view class="view_3">
+                    <image class="image_1" thumbnail="true" src={{item.book_image }} />
+                </view>
+                <view class="view_4"><text class="text_1">《{{item.book_name }}》</text>
+                    <text>作者：{{item.book_author }}</text>
+                    <text>出版日期：{{item.book_date }}</text>
+                    <text>ISBN编号：{{item.book_id }}</text>
+                    <button class="button_1" onclick={this.book_details} data_index={{item.book_id }} type="button">查看</button>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    flex-direction: row;
+    background-color: #4A90E200;
+    border-style: none;
+    border-top-style: solid;
+    border-right-style: solid;
+    border-left-style: solid;
+    border-bottom-style: solid;
+    border-color: none;
+    border-left-width: 20px;
+    border-right-width: 20px;
+    border-top-width: 20px;
+    border-bottom-color: #4A90E2;
+    border-bottom-width: 1px;
+    border-right-color: #00000000;
+    border-top-color: #00000000;
+    border-left-color: #00000000
+}
+
+.view_3 {
+    width: 20%
+}
+.view_4 {
+    border-left-style: solid;
+    border-left-width: 10px;
+    border-left-color: #00000000;
+    border-bottom-style: solid;
+    border-bottom-width: 10px;
+    border-bottom-color: #00000000
+}
+.button_1 {
+    border-radius: 10px;
+    border-color: #4A90E2;
+    color: #4A90E2;
+    text-align: center;
+    width: 100px
+}
+.text_1 {
+    color: #4A90E2;
+    font-size: 18px
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+export default {
+    name: 'books',
+    apiready() {},
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            allbooks: JSON.parse(localStorage.getItem('allbook_data'))
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        book_details(e) {
+            let that = this; // console.log(JSON.stringify(e.currentTarget.attributes));
+            //查询指定图书的所有信息
+            api.ajax({
+                url: that.data.host_api + 'api/books?filter=%7B%22where%22%3A%7B%22book_id%22%3A%22' + e.currentTarget.attributes.data_index + '%22%7D%7D',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                if (ret) {
+                    //打开指定图书详情页面
+                    api.openFrame({
+                        name: 'book_details',
+                        url: '../book_details/book_details.stml',
+                        pageParam: {
+                            book_infor: JSON.stringify(ret[0]),
+                            isShow_1: localStorage.getItem('islogin') == '0' ? '1' : '0',
+                            is_user: localStorage.getItem('islogin') == '1' ? '1' : '0',
+                            is_admin: localStorage.getItem('islogin') == '2' ? '1' : '0'
+                        },
+                        reload: true
+                    });
+                } else {
+                    api.alert({
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        }
+    }
+};
+</script>

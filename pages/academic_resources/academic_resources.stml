@@ -1,0 +1,152 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et title="学术资源" isBack ononBack={this.back} rightIcon="../../image/help.png" ononClickRight={this.help}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_2" v-for="(item, index) in web_list" data_name={{item.web_name }} data_url={{item.web_url }} onclick={this.openWeb}>
+                <view class="view_3">
+                    <view class="view_4">
+
+                        <view class="view_5"><text class="text_1">{{item.web_name }}</text>
+                            <text class="text_2">{{item.web_description }}</text>
+                        </view>
+                        <view class="view_6">
+                            <button class="button_1">打开</button>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+        <a-popup $show="show" closeable round position="bottom" style="height: 40%;">
+            <view class="view_2 view_9">
+
+                <view class="view_7">
+                    <view class="view_8">
+                        <a-icon name="link" size="40" color="#3af" />
+                        <text class="text_3">一触即达</text>
+                    </view>
+                    <view>
+                        <a-icon name="layers" size="40" color="#3af" />
+                        <text class="text_4">资源丰富</text>
+                    </view>
+                    <view>
+                        <a-icon name="good" size="40" color="#3af" />
+                        <text class="text_5">便捷易用</text>
+                    </view>
+                </view>
+                <view class="view_10"><text class="demo-content">该页面收录了一些实用的第三方网站供读者参考使用。注意：所有第三方网站不受到本APP的监管，我们也不对其一切行为负责；因此在浏览的过程中，请妥善处理自己的隐私信息</text>
+                </view>
+            </view>
+        </a-popup>
+
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF;
+    border-radius: 0px
+}
+.view_2 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF
+}
+.view_3 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+}
+.text_1 {
+    font-size: 25px;
+    color: #4A90E2
+}
+.view_4 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center
+}
+
+.button_1 {
+    border-style: solid;
+    border-color: #4A90E2;
+    border-width: 2px;
+    color: #4A90E2;
+    width: 70px
+}
+.text_2 {
+    color: #9B9B9B
+}
+.view_5 {
+    background-color: #FFFFFF
+}
+.view_6 {
+    background-color: #FFFFFF
+}
+.view_7 {
+    flex-direction: row;
+    justify-content: space-between
+}
+.view_8 {
+    align-items: center;
+    justify-content: flex-start
+}
+.view_9 {
+    border-width: 50px
+}
+.demo-content {
+    color: #9B9B9B
+}
+.text_3 {
+    color: #4A90E2
+}
+.text_4 {
+    color: #4A90E2
+}
+.text_5 {
+    color: #4A90E2
+}
+.view_10 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF00
+}
+</style>
+<script>
+import AIcon from "../../components/act/a-icon";
+import APopup from "../../components/act/a-popup/a-popup.stml";
+import "../../components/feature-component/hoc-header-bar-et.stml";
+
+export default {
+    name: 'academic_resources',
+    data() {
+        return {
+            show: false,
+            web_list: JSON.parse(localStorage.getItem('weblist_data'))
+        };
+    },
+    methods: {
+        openWeb(e) {
+            var web_data = {
+                web_name: e.target.attributes.data_name,
+                web_url: e.target.attributes.data_url
+            };
+            api.openWin({
+                name: 'web_view',
+                url: '../web_view/web_view.stml',
+                pageParam: {
+                    web_data: JSON.stringify(web_data)
+                }
+            });
+        },
+        back(e) {
+            api.closeWin();
+        },
+        help(e) {
+            this.data.show = true;
+        }
+    }
+};
+</script>

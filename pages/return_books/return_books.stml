@@ -1,0 +1,204 @@
+<template>
+    <view class="view_1">
+        <view>
+            <hoc-header-bar-et title="归还图书" isBack ononBack={this.back}></hoc-header-bar-et>
+        </view>
+        <scroll-view class="scroll-view_1" scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+
+            <view class="view_2">
+
+                <view class="view_3">
+                    <image class="image_1" thumbnail="true" src={{qrcode }} />
+                </view>
+            </view>
+            <view>
+                <hoc-pay-desc-et :payInfo="hocPayDescEtPayCourseInfo"></hoc-pay-desc-et>
+            </view>
+        </scroll-view>
+        <view class="view_4">
+            <button class="button_1" onclick={this.confirm_return}>确认归还</button>
+        </view>
+        <lanyun-notify @end="handleClose" :show={{pop_hint.show}} content={{pop_hint.content}} type={{pop_hint.type}} :duration="1000" />
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    align-items: center
+}
+.scroll-view_1 {
+    align-items: center
+}
+
+.view_3 {
+    width: 50%;
+    align-items: baseline
+}
+.button_1 {
+    width: 50%;
+    border-style: solid;
+    border-color: #4A90E2;
+    border-width: 2px;
+    color: #4A90E2
+}
+.view_4 {
+    align-items: center;
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF00
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/feature-component/hoc-pay-desc-et.stml";
+import "../../components/avm-ui/button";
+import '../../components/lanyun-notify.stml';
+export default {
+    name: 'return_books',
+    apiready() {
+        this.data.hocPayDescEtPayCourseInfo[0].value = this.data.book_infor.book_name;
+        this.data.hocPayDescEtPayCourseInfo[1].value = this.data.book_infor.book_lend_date;
+        this.data.hocPayDescEtPayCourseInfo[2].value = this.data.book_infor.book_expect_date;
+        this.return_qrcode();
+    },
+    data() {
+        return {
+            qrcode: '',
+            book_infor: JSON.parse(api.pageParam.book_infor),
+            host_api: localStorage.getItem('host_api'),
+            pop_hint: {
+                show: false,
+                content: '',
+                type: ''
+            },
+            hocPayDescEtPayCourseInfo: [{
+                label: "图书名称",
+                isRow: true,
+                value: ''
+            }, {
+                label: "借书日期",
+                isRow: true,
+                value: ''
+            }, {
+                label: "预期还书日期",
+                isRow: true,
+                value: ''
+            }]
+        };
+    },
+    methods: {
+        return_qrcode() {
+            //生成还书二维码
+            let that = this;
+            var FNScanner = api.require('FNScanner');
+            FNScanner.encodeImg({
+                content: '{"type":"book_return","user_id":"' + localStorage.getItem('user_id') + '","book_id":"' + that.data.book_infor.book_id + '"}',
+                saveToAlbum: false,
+                saveImg: {
+                    path: 'fs://return_qrcode.png',
+                    w: 400,
+                    h: 400
+                }
+            }, function(ret, err) {
+                if (ret.status) {
+                    that.data.qrcode = ret.imgPath;
+                } else {
+                    api.alert({
+                        title: '发生意外错误',
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        back(e) {
+            api.closeFrame();
+        },
+        hint(content, type) {
+            // type:primary、success、error、warning、info
+            this.data.pop_hint.show = true;
+            this.data.pop_hint.content = content;
+            this.data.pop_hint.type = type;
+        },
+        handleClose() {
+            this.data.pop_hint.show = false;
+        },
+        confirm_return(e) {
+            //确认归还
+            let that = this;
+            var date = new Date();
+            var today_year = date.getFullYear();
+            var today_month = date.getMonth() + 1;
+            var today_day = date.getDate();
+            var expect_year = that.data.book_infor.book_expect_date.split("年")[0];
+            var expect_month = that.data.book_infor.book_expect_date.split("月")[0].split("年")[1];
+            var expect_day = that.data.book_infor.book_expect_date.split("月")[1].split("日")[0]; //判断是否逾期(is_overdue为false表示未逾期)
+            var is_overdue = false;
+            if (today_year > parseInt(expect_year)) {
+                is_overdue = true;
+            } else if (today_year = parseInt(expect_year)) {
+                if (today_month > parseInt(expect_month)) {
+                    is_overdue = true;
+                } else if (today_month = parseInt(expect_month)) {
+                    if (today_day > parseInt(expect_day)) {
+                        is_overdue = true;
+                    }
+                }
+            } //修改图书的库存量book_num（+1）
+            api.ajax({
+                url: that.data.host_api + 'api/books/update?where=%7B%22book_id%22%3A%22' + that.data.book_infor.book_id + '%22%7D',
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                data: {
+                    body: {
+                        "book_num": that.data.book_infor.book_num + 1
+                    }
+                }
+            }, function(ret, err) {
+                if (is_overdue) {
+                    //逾期
+                    that.hint('[逾期归还]归还成功', 'warning');
+                } else {
+                    //未逾期
+                    that.hint('图书归还成功', 'success');
+                }
+                //修改借阅记录（实际还书日期book_return_date、图书状态book_state）
+                api.ajax({
+                    url: that.data.host_api + 'api/borrow_records/update?where=%7B%22book_id%22%3A%22' + that.data.book_infor.book_id + '%22%2C%22user_id%22%3A%22' + that.data.book_infor.user_id + '%22%2C%22book_state%22%3A0%7D',
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    data: {
+                        body: {
+                            "book_return_date": today_year + '年' + today_month + '月' + today_day + '日',
+                            "book_state": is_overdue ? -1 : 1
+                        }
+                    }
+                },function(ret, err){
+                    //关闭相关页面
+                    api.closeFrame({
+                        name: 'bookshelf_details'
+                    });
+                    api.openFrame({
+                        name: 'home',
+                        url: '../home/home.stml',
+                        rect: {
+                            marginBottom: 80 //相对父页面下外边距的距离
+                        },
+                        reload: true
+                    });
+                    api.closeFrame('return_books');
+                })
+            });
+                
+            
+        }
+    }
+};
+</script>

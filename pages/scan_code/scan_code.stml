@@ -1,0 +1,79 @@
+<template>
+    <safe-area class="view_1">
+
+        <view class="view_2">
+
+            <view @click="back">
+                <a-icon name="arrow-left" color="#3af" size="30"/>
+            </view>
+            <view class="view_3" onclick={this.flash}>
+                <a-icon name="browse" color="#3af" size="30"/>
+                <text class="text_1">照明</text>
+            </view>
+        </view>
+    </safe-area>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #00000000
+}
+.view_2 {
+    flex-direction: row;
+    justify-content: space-between;
+    border-left-style: solid;
+    border-left-width: 20px;
+    border-left-color: #00000000;
+    border-right-style: solid;
+    border-right-width: 20px;
+    border-right-color: #FFFFFF00;
+    background-color: #9B9B9B7D
+}
+.view_3 {
+    flex-direction: row;
+    align-items: center
+}
+.text_1 {
+    font-size: 18px;
+    color: #3af
+}
+</style>
+<script>
+import AIcon from "../../components/act/a-icon";
+export default {
+    name: 'scan_code',
+    apiready() {},
+    data() {
+        return {
+            isFlash: false
+        };
+    },
+    methods: {
+        back(e) {
+            var ACScanner = api.require('ACScanner');
+            ACScanner.closeScan({});
+            ACScanner.flash({
+                //关闭照明灯
+                light: false
+            });
+            api.closeFrame();
+        },
+        flash(e) {
+            //照明
+            var ACScanner = api.require('ACScanner');
+            if (this.data.isFlash == false) {
+                this.data.isFlash = true;
+                ACScanner.flash({
+                    light: true
+                });
+            } else {
+                this.data.isFlash = false;
+                ACScanner.flash({
+                    light: false
+                });
+            }
+        }
+    }
+};
+</script>

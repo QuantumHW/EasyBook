@@ -1,0 +1,156 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et title="图书征订（管理）" isBack rightIcon="../../image/help.png" ononBack={this.back}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view v-for="(item, index) in all_data">
+                <view class="view_2" v-if={item.state}>
+                    <view class="view_5 view_6">
+                        <view class="view_4">
+                            <avm-space direction="vertical"><text class="text_1">《{item.book_name}》</text>
+                                <text class="text_2">ISBN:{item.book_id}</text>
+                            </avm-space>
+                        </view>
+                        <view class="view_3"><button class="button_1 button_2" disabled>已处理</button>
+                        </view>
+                    </view>
+                </view>
+                <view class="view_2" v-else>
+                    <view class="view_5">
+                        <view class="view_4">
+                            <avm-space direction="vertical"><text class="text_1">《{item.book_name}》</text>
+                                <text class="text_2">ISBN:{item.book_id}</text>
+                            </avm-space>
+                        </view>
+                        <view class="view_3">
+                            <button class="button_1" data_id={item.id} onclick={this.process}>处理</button>
+                        </view>
+                    </view>
+                </view>
+
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/space";
+import "../../components/avm-ui/button";
+export default {
+    name: 'book_subscription',
+    data() {
+        return {
+            all_data: [],
+            host_api: localStorage.getItem('host_api')
+        };
+    },
+    apiready() {
+        this.getAlldata();
+    },
+    getAlldata() {
+        let that = this;
+        api.ajax({
+            url: that.data.host_api + 'api/book_subscriptions',
+            method: 'get',
+            headers: {
+                'Content-Type': 'application/json;charset=utf-8'
+            }
+        }, function(ret, err) {
+            if (ret) {
+                that.data.all_data = ret;
+            } else {
+                api.alert({
+                    title: '发生意外错误',
+                    msg: JSON.stringify(err)
+                });
+            }
+        });
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        process(e) {
+            //处理请求
+            let that = this
+            api.ajax({
+                url: that.data.host_api + 'api/book_subscriptions/update?where=%7B%22id%22%3A%22'+e.target.attributes.data_id+'%22%7D',
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                data: {
+                    body: {
+                        "state": 1,
+                    }
+                }
+            }, function(ret, err) {
+                if (ret.count == '1') {
+                    api.toast({
+                        msg: '处理完成'
+                    });
+                    api.closeWin()
+                } else {
+                    api.alert({
+                        title: '发生意外错误',
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    flex-direction: row;
+    border-style: solid;
+    border-width: 20px;
+    border-color: #00000000;
+    background-color: #00000000
+}
+.text_1 {
+    color: #FFFFFF;
+    font-size: 20px
+}
+.view_3 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000;
+    background-color: #00000000
+}
+.text_2 {
+    color: #FFFFFF
+}
+.view_4 {
+    background-color: #00000000;
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000
+}
+.view_5 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #4A90E2;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%
+}
+.button_1 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    color: #4A90E2;
+    border-style: solid
+}
+.view_6 {
+    background-color: #9B9B9B
+}
+.button_2 {
+    color: #4A4A4A
+}
+</style>

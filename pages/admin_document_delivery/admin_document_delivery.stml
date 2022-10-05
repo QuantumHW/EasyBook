@@ -1,0 +1,144 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et isBack title="文献传递（管理）" rightIcon="../../image/help.png" ononBack={this.back}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+
+            <view class="view_2" v-for="(item, index) in document_pending">
+                <view class="view_3">
+                    <view class="view_4">
+                        <text class="text_1">DOI号：{{item.document_doi }}</text>
+                        <text class="text_2">电子邮箱：{{item.user_email }}</text>
+                    </view>
+                    <view class="view_5">
+                        <button class="button_1" onclick={this.process} data_id={{item.id }}>处理该请求</button>
+                    </view>
+                </view>
+            </view>
+
+
+            <view class="view_2" v-for="(item, index) in document_processed">
+                <view class="view_3 view_6">
+                    <view class="view_4"><text class="text_1 text_3">DOI号：{{item.document_doi }}</text>
+                        <text class="text_2 text_4">电子邮箱：{{item.user_email }}</text>
+                    </view>
+                    <view class="view_5"><button class="button_1 button_2">已完成传递</button>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/button";
+export default {
+    name: 'page',
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            document_pending: JSON.parse(localStorage.getItem('document_pending')),
+            document_processed: JSON.parse(localStorage.getItem('document_processed'))
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        process(e) {
+            //完成处理
+            document_id = e.target.attributes.data_id;
+            let that = this;
+            var date = new Date();
+            var today_year = date.getFullYear();
+            var today_month = date.getMonth() + 1;
+            var today_day = date.getDate();
+            api.ajax({
+                url: that.data.host_api + 'api/document_deliveries/update?where=%7B%22id%22%3A%22' + document_id + '%22%7D',
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                data: {
+                    body: {
+                        "state": 1,
+                        "admin_id": localStorage.getItem("user_id"),
+                        "handle_date": today_year + "年" + today_month + "月" + today_day + "日"
+                    }
+                }
+            }, function(ret, err) {
+                if (ret.count == '1') {
+                    api.toast({
+                        msg: '完成传递'
+                    });
+                    api.closeWin()
+                } else {
+                    api.alert({
+                        title: '发生意外错误',
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF00
+}
+.view_3 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    background-color: #4A90E2DE;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.view_4 {
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 10px
+}
+.text_1 {
+    color: #FFFFFF;
+    font-size: 20px
+}
+.view_5 {
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF00
+}
+.text_2 {
+    color: #C3E2FF
+}
+.button_1 {
+    align-items: baseline;
+    justify-content: space-between;
+    border-style: solid;
+    border-color: #0076FF;
+    border-width: 2px;
+    color: #4A90E2
+}
+.view_6 {
+    background-color: #9B9B9B
+}
+.text_3 {
+    color: #E7DFDF
+}
+.text_4 {
+    color: #DFDFDF
+}
+.button_2 {
+    border-color: #5D5C5C;
+    color: #9B9B9B
+}
+</style>

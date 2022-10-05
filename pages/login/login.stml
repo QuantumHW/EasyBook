@@ -1,0 +1,281 @@
+<template>
+    <safe-area class="page">
+        <view>
+            <img class="img" src="../../image/cloud_management.png" />
+        </view>
+        <view class="view_1">
+            <text class="text_1">登录</text>
+        </view>
+        <view>
+            <view class="view_4">
+                <view class="view_2">
+                    <image class="image_1" thumbnail="true" src="https://ebookapp-1309407769.cos.ap-chengdu.myqcloud.com/APPdata/%E8%B4%A6%E5%8F%B7.png" />
+                    <input class="input_1" id="userName" style="margin:10px;" placeholder="请输入您的学工号"/>
+                </view>
+                <view class="view_3">
+                    <image class="image_2" thumbnail="true" src="https://ebookapp-1309407769.cos.ap-chengdu.myqcloud.com/APPdata/%E5%AF%86%E7%A0%81.png" />
+                    <input class="input_2" id="password" style="margin:10px;" type="password" placeholder="请输入您的密码"/>
+                </view>
+
+                <avm-button class="avm-button_1" size="large" color="success" onclick={this.login} fill="outline" shape="default">登录LOGIN</avm-button>
+                <avm-button fill="none" size="large" color="warning" shape="default" onclick={this.cancel_login}>暂不登录</avm-button>
+            </view>
+            <view class="view_5">
+                <checkbox-group onChange={this.onchange}>
+                    <label>
+                        <checkbox value="admin"></checkbox>
+                        <text>管理员</text>
+                    </label>
+                </checkbox-group>
+            </view>
+        </view>
+        <lanyun-notify @end="handleClose" :show={{pop_hint.show }} content={{pop_hint.content }} type={{pop_hint.type }} :duration="2000" />
+    </safe-area>
+</template>
+<style>
+.view_1 {
+    border-top-style: none;
+    border-top-color: #FFFFFF00;
+    border-bottom-style: solid;
+    border-bottom-width: 20px;
+    border-bottom-color: #00000000
+}
+.view_2 {
+    background-color: #96CCFC;
+    border-style: solid;
+    flex-direction: row;
+    align-items: center;
+    border-left-color: #FFFFFF;
+    border-left-width: 20px;
+    border-right-width: 20px;
+    border-right-color: #FFFFFF;
+    border-right-style: none;
+    border-bottom-style: none;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    border-top-style: none;
+    border-left-style: none
+}
+.view_3 {
+    background-color: #96CCFC;
+    border-style: solid;
+    flex-direction: row;
+    align-items: center;
+    border-left-width: 20px;
+    border-right-width: 20px;
+    border-left-color: #FFFFFF;
+    border-right-color: #FFFFFF;
+    border-left-style: none;
+    border-right-style: none;
+    border-top-style: none;
+    border-bottom-style: none;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px
+}
+.image_1 {
+    width: 25px;
+    border-left-style: solid;
+    border-left-width: 5px;
+    border-left-color: #FFFFFF00
+}
+.image_2 {
+    width: 25px;
+    border-left-width: 5px;
+    border-left-color: #FFFFFF00;
+    border-left-style: solid
+}
+.view_4 {
+    border-left-width: 20px;
+    border-right-width: 20px;
+    border-color: #FFFFFF;
+    border-style: solid;
+    border-top-style: none
+}
+
+.view_5 {
+    flex-direction: row;
+    align-items: center;
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 15px;
+    justify-content: flex-end
+}
+.input_1 {
+    background-color: #9FD0FA;
+    width: 100%;
+    font-size: 20px;
+    color: #4A90E2
+}
+.input_2 {
+    width: 100%;
+    background-color: #9FD0FA;
+    font-size: 20px;
+    color: #4A90E2
+}
+.text_1 {
+    font-size: 50px;
+    text-align: left;
+    font-weight: bold;
+    color: #66ABDB;
+    border-style: none;
+    border-top-style: none;
+    border-right-style: none;
+    border-left-style: solid;
+    border-bottom-style: none;
+    border-color: none;
+    border-left-color: #00000000;
+    border-left-width: 30px;
+    border-bottom-color: #87C0FF
+}
+.text_2 {
+    align-items: center;
+    justify-content: flex-start;
+    color: #4A90E2
+}
+.page {
+    background-color: #FFFFFF
+}
+.checkbox_1 {
+    background-color: #00000000;
+    border-color: #4A90E2;
+    border-style: solid
+}
+.img {
+    max-width: 100%;
+    border-style: solid;
+    border-color: #00000000;
+    border-width: 60px;
+    border-bottom-width: 60px;
+}
+</style>
+<script>
+import "../../components/avm-ui/input";
+import "../../components/avm-ui/button";
+import "../../components/avm-ui/checkbox";
+import '../../components/lanyun-notify.stml';
+export default {
+    name: 'login',
+    apiready() {},
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            is_admin: false,
+            // 用于判断是否勾选“管理员”
+            pop_hint: {
+                show: false,
+                content: '',
+                type: ''
+            }
+        };
+    },
+    methods: {
+        login(e) {
+            let that = this;
+            var username_input = $("#userName").value;
+            var password_input = $("#password").value;
+            if (username_input == '' || password_input == '') {
+                that.hint('账号或密码不能为空', 'warning');
+            } else {
+                if (this.data.is_admin == 'admin') {
+                    //管理员登录
+                    api.ajax({
+                        url: this.data.host_api + 'api/administrators/admin_login',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        data: {
+                            body: {
+                                username: username_input,
+                                password: password_input
+                            }
+                        }
+                    }, function(ret, err) {
+                        if (ret) {
+                            if (ret['data'].length == 0) {
+                                //未查到指定信息的用户，接收到空数据
+                                that.hint('账号或密码有误，登录失败', 'error');
+                            } else {
+                                //普通用户登录成功
+                                //保存登录信息
+                                localStorage.setItem('user_id', username_input);
+                                localStorage.setItem('user_name', ret.data[0].admin_name);
+                                localStorage.setItem('islogin', '2'); //0代表未登录，1代表普通用户登录，2代表管理员登录
+                                api.openFrame({
+                                    name: 'my',
+                                    url: '../my/my.stml',
+                                    rect: {
+                                        marginBottom: 80 //相对父页面下外边距的距离
+                                    },
+                                    reload: true //重新加载页面，刷新数据
+                                });
+                            }
+                        } else {
+                            api.alert({
+                                msg: JSON.stringify(err)
+                            });
+                        }
+                    });
+                } else {
+                    //普通用户登录
+                    api.ajax({
+                        url: this.data.host_api + 'api/users/user_login',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        data: {
+                            body: {
+                                username: username_input,
+                                password: password_input
+                            }
+                        }
+                    }, function(ret, err) {
+                        if (ret) {
+                            if (ret['data'].length == 0) {
+                                //未查到指定信息的用户，接收到空数据
+                                that.hint('账号或密码有误，登录失败', 'error');
+                            } else {
+                                //普通用户登录成功
+                                //保存登录信息
+                                localStorage.setItem('user_id', username_input);
+                                localStorage.setItem('user_name', ret.data[0].user_name);
+                                localStorage.setItem('islogin', '1'); //0代表未登录，1代表普通用户登录，2代表管理员登录
+                                api.openFrame({
+                                    name: 'my',
+                                    url: '../my/my.stml',
+                                    rect: {
+                                        marginBottom: 80 //相对父页面下外边距的距离
+                                    },
+                                    reload: true //重新加载页面，刷新数据
+                                });
+                            }
+                        } else {
+                            api.alert({
+                                msg: JSON.stringify(err)
+                            });
+                        }
+                    });
+                }
+            }
+        },
+        onchange(e) {
+            this.data.is_admin = e.detail.value[0];
+        },
+        cancel_login(e) {
+            api.closeFrame({
+                name: "login"
+            });
+        },
+        hint(content, type) {
+            // type:primary、success、error、warning、info
+            this.data.pop_hint.show = true;
+            this.data.pop_hint.content = content;
+            this.data.pop_hint.type = type;
+        },
+        handleClose() {
+            this.data.pop_hint.show = false;
+        }
+    }
+};
+</script>

@@ -1,0 +1,232 @@
+<template>
+    <view class="view_1">
+
+        <view>
+            <hoc-header-bar-et title="图书详情" isBack ononBack={this.back}></hoc-header-bar-et>
+        </view>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view>
+                <view class="view_2">
+                    <view class="view_3">
+                        <image thumbnail="true" src={{book_infor.book_image }} />
+                    </view>
+                    <view class="view_9"><text class="text_3">《{{book_infor.book_name }}》</text>
+                        <text>作者：{{book_infor.book_author }}</text>
+                        <text>出版日期：{{book_infor.book_date }}</text>
+                        <text>ISBN编号：{{book_infor.book_id }}</text>
+                        <text>库存数量：{{book_infor.book_num }}</text>
+                        <text>图书分类：{{book_infor.book_class }}</text>
+                        <text>本书已借阅{{book_infor.book_count }}次</text>
+                        <text>本书一次性最长可借{{book_infor.book_maxtime }}天</text>
+                        <view class="view_10">
+                            <view class="view_11" v-for="(item, index) in book_infor.book_keyword.split('、')">
+                                <avm-tag class="avm-tag_1" children={{item }} bgColor="#4A90E2" borderRadius="2px" fill="solid" textColor="#FFFFFF" borderColor="#00000000" size="large"></avm-tag>
+                            </view>
+                        </view>
+
+                    </view>
+                </view>
+                <view class="view_4">
+                    <text v-show={{isShow_1 }} class="text_2">登录后才能进行更多操作喔~</text>
+
+                    <view v-show={{isShow_user }} class="view_5">
+                        <button class="button_1" onclick={this.borrow_books}>借阅图书</button>
+                    </view>
+
+                    <view v-show={{isShow_admin }} class="view_6">
+                        <view class="view_7">
+                            <button class="button_2" onclick={this.edit_bookinfor}>修改图书信息</button>
+                        </view>
+                        <view class="view_8"><button class="button_3" onclick={this.delete_book}>下架图书</button>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    flex-direction: row;
+    border-top-style: solid;
+    border-top-width: 20px;
+    border-top-color: #00000000;
+    border-bottom-style: solid;
+    border-bottom-width: 20px;
+    border-bottom-color: #00000000;
+    border-left-style: solid;
+    border-left-width: 10px;
+    border-left-color: #00000000;
+    border-right-style: solid;
+    border-right-width: 10px;
+    border-right-color: #00000000
+}
+.view_3 {
+    width: 30%
+}
+.text_1 {
+    color: #4A90E2
+}
+.view_4 {
+    justify-content: center;
+    align-items: center
+}
+.button_1 {
+    width: 50%;
+    justify-content: flex-start;
+    border-color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    color: #4A90E2;
+    font-size: 20px
+}
+.button_2 {
+    width: 50%;
+    color: #F5A623;
+    border-color: #F5A623;
+    border-style: solid;
+    border-width: 2px;
+    font-size: 20px;
+    text-align: center
+}
+.text_2 {
+    color: #9B9B9B;
+    font-weight: 900;
+    font-size: 20px
+}
+.button_3 {
+    width: 50%;
+    color: #D0021B;
+    border-style: dotted;
+    border-color: #D0021B;
+    border-bottom-color: #D0021B
+}
+.view_5 {
+    width: 100%;
+    align-items: center
+}
+.view_6 {
+    width: 100%;
+    align-items: center
+}
+.view_7 {
+    width: 100%;
+    align-items: center;
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 10px
+}
+.view_8 {
+    width: 100%;
+    align-items: center;
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 10px
+}
+.text_3 {
+    font-size: 18px;
+    color: #4A90E2
+}
+.view_9 {
+    border-left-style: solid;
+    border-left-width: 10px;
+    border-left-color: #00000000
+}
+.view_10 {
+    flex-direction: row
+}
+.view_11 {
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 5px;
+    flex-wrap: wrap
+}
+.avm-tag_1 {
+    flex-wrap: nowrap
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/tag";
+export default {
+    name: 'book_details',
+    apiready() {},
+    data() {
+        return {
+            book_infor: JSON.parse(api.pageParam.book_infor),
+            host_api: localStorage.getItem('host_api'),
+            isShow_1: api.pageParam.isShow_1 == '1' ? true : false,
+            isShow_user: api.pageParam.is_user == '1' ? true : false,
+            isShow_admin: api.pageParam.is_admin == '1' ? true : false
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeFrame();
+        },
+        borrow_books(e) {
+            let that = this; //借阅图书
+            if (that.data.book_infor.book_num == 0) {
+                api.alert({
+                    title: '借阅失败',
+                    msg: '抱歉，该图书当前库存为0，暂时无法借阅'
+                });
+            } else {
+                api.openFrame({
+                    name: 'borrow_books',
+                    url: '../borrow_books/borrow_books.stml',
+                    reload: true,
+                    pageParam: {
+                        book_infor: JSON.stringify(that.data.book_infor)
+                    }
+                });
+            }
+        },
+        edit_bookinfor(e) { //（管理员）修改图书信息
+            api.openWin({
+                name: 'edit_book',
+                url:'../edit_book/edit_book.stml',
+                pageParam: {
+                    book_infor: JSON.stringify(this.data.book_infor),
+                },
+            })
+        },
+        delete_book(e) { //（管理员）删除图书
+            let that = this
+            book_infor = that.data.book_infor
+            api.confirm({
+                title: '请谨慎操作',
+                msg: '确认下架《' + book_infor.book_name + "》吗？这将会导致该图书的所有数据被移除，且无法借阅",
+                buttons: ['确定', '点错了']
+            }, function(ret, err) {
+                var index = ret.buttonIndex;
+                if (index == 1) {
+                    api.ajax({
+                        url: that.data.host_api + 'api/books/del_book',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: {
+                            values: {
+                                "book_id": book_infor.book_id
+                            }
+                        }
+                    }, function(ret, err) {
+                        api.alert({
+                            title: "下架成功",
+                            msg: "图书《" + book_infor.book_name + "》已从图书馆中移除"
+                        });
+                        api.closeWin();
+                    });
+                }
+            });
+        }
+    }
+};
+</script>

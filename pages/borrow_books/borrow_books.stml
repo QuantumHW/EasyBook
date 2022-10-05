@@ -1,0 +1,340 @@
+<template>
+    <view class="view_1">
+        <view>
+            <hoc-header-bar-et title="借阅图书" isBack={show_back} ononBack={this.back}></hoc-header-bar-et>
+        </view>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+
+            <view v-show={{infor_isShow }}>
+                <hoc-aboutus-et :contents="hocAboutusEtContents" moduleTitle="图书信息确认"></hoc-aboutus-et>
+                <view class="view_2">
+                    <view class="view_3">
+                        <image class="image_1" thumbnail="true" src={{book_infor.book_image }} />
+                    </view>
+                    <view class="view_4">
+                        <text class="text_1">《{{book_infor.book_name }}》</text>
+                        <text class="text_2">{{book_infor.book_author }}</text>
+
+                    </view>
+                </view>
+            </view>
+            <view v-show={{infor_isShow }}>
+                <view class="view_5">
+                    <text class="text_3">借阅天数</text>
+                    <avm-stepper style="margin:15px;" min={1} max={{book_infor.book_maxtime }} inputFontColor="#4A90E2" btnTextColor="#4A90E2" value={1} onhandleChange={this.change_stepper}></avm-stepper>
+                </view>
+                <view class="view_6">
+                    <textarea class="textarea" placeholder="可输入需要向管理员反映的其他情况..." maxlength="100" autofocus confirm-type="next" onblur={this.change_text} onconfirm={this.change_text} onkeyboardheightchange={this.change_text} value="" />
+                </view>
+                <view class="view_7">
+                    <button class="button_1" onclick={this.confirm_borrowing}>确认借阅</button>
+                </view>
+            </view>
+
+            <view v-show={{qrcode_isShow }} class="view_8">
+
+                <view class="view_9"><text class="text_4">请凭以下二维码取书</text>
+                </view>
+                <view class="view_10">
+                    <image class="image_2" thumbnail="true" src={{qrcode }} />
+                </view>
+                <view class="view_11">
+                    <text class="text_5">《{{book_infor.book_name }}》</text>
+                    <text class="text_6">{{time_today }}</text>
+
+
+
+                </view>
+                <view class="view_12">
+                    <hoc-pay-desc-et :payInfo="hocPayDescEtPayCourseInfo"></hoc-pay-desc-et>
+                </view>
+                <view class="view_13">
+                    <button class="button_2" onclick={this.borrow_completed}>完成借阅</button>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    flex-direction: column
+}
+.view_3 {
+    justify-content: center;
+    align-items: center
+}
+.image_1 {
+    width: 45%
+}
+.view_4 {
+    align-items: center
+}
+.text_1 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.text_2 {
+    color: #4A90E2
+}
+.view_5 {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center
+}
+.text_3 {
+    font-size: 18px;
+    color: #4A90E2
+}
+.view_6 {
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 25px;
+    justify-content: center;
+    align-items: center
+}
+.view_7 {
+    align-items: center;
+    justify-content: center
+}
+.button_1 {
+    width: 50%;
+    border-color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    color: #4A90E2
+}
+.textarea {
+    width: 80%
+}
+.view_8 {
+    align-items: center;
+    border-style: none;
+    border-top-style: solid;
+    border-right-style: solid;
+    border-left-style: solid;
+    border-bottom-style: none;
+    border-color: none;
+    border-top-color: #FFFFFF00;
+    border-left-width: 30px;
+    border-left-color: #FFFFFF00;
+    border-right-width: 30px;
+    border-right-color: #FFFFFF00;
+    border-top-width: 30px
+}
+.image_2 {
+    width: 80%
+}
+.text_4 {
+    border-color: none;
+    border-style: solid;
+    border-left-style: none;
+    border-top-style: none;
+    border-right-style: none;
+    border-bottom-style: none;
+    color: #4A90E2
+}
+.view_9 {
+    border-color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    width: 60%;
+    align-items: center
+}
+.view_10 {
+    align-items: center;
+    background-color: #4A90E2BD
+}
+.view_11 {
+    align-items: center
+}
+.text_5 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.text_6 {
+    font-size: 18px;
+    color: #7ED321
+}
+.view_12 {
+    align-items: center
+}
+.button_2 {
+    border-style: solid;
+    border-color: #4A90E2;
+    border-width: 2px;
+    color: #4A90E2;
+    font-size: 20px
+}
+.view_13 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF00
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/feature-component/hoc-aboutus-et.stml";
+import "../../components/avm-ui/stepper";
+import "../../components/avm-ui/button";
+import "../../components/feature-component/hoc-pay-desc-et.stml";
+export default {
+    name: 'borrow_books',
+    data() {
+        return {
+            show_back: true,
+            infor_isShow: true,
+            qrcode_isShow: false,
+            stepper_data: 1,
+            text_area: '',
+            book_infor: JSON.parse(api.pageParam.book_infor),
+            hocAboutusEtContents: [],
+            host_api: localStorage.getItem('host_api'),
+            qrcode: '',
+            time_today: '',
+            hocPayDescEtPayCourseInfo: [{
+                label: "读者学工号",
+                isRow: true,
+                value: localStorage.getItem('user_id')
+            }, {
+                label: "读者姓名",
+                isRow: true,
+                value: localStorage.getItem('user_name')
+            }, {
+                label: "注意事项",
+                isRow: false,
+                value: "请向管理员出示以上二维码，完成借书。您还应妥善保管图书，并注意及时归还；若出现逾期未还、图书损坏、遗失等问题，除按相关规定进行处罚外，还会对相关不良行为进行记录，影响您正常借阅图书"
+            }]
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeFrame();
+        },
+        change_stepper(e) {
+            this.data.stepper_data = e.detail;
+        },
+        change_text(e) {
+            this.data.text_area = e.detail.value;
+        },
+        confirm_borrowing(e) {
+            let that = this;
+            var date = new Date();
+            var today_year = date.getFullYear();
+            var today_month = date.getMonth() + 1;
+            var today_day = date.getDate();
+            var after_date = this.getDateStr(parseInt(this.data.stepper_data));
+            var book_id = this.data.book_infor.book_id; //被借图书编号
+            var user_id = localStorage.getItem('user_id'); //借书读者ID
+            var book_lend_date = today_year + '年' + today_month + '月' + today_day + '日'; //图书借出日期
+            var book_expect_date = after_date[0] + '年' + after_date[1] + '月' + after_date[2] + '日'; //图书预期归还日期
+            var book_state = 0; //图书状态（未还0、已还1、逾期-1、异常-2）
+            var book_remark = this.data.text_area; //其他说明
+            that.data.time_today = today_year + '-' + today_month + '-' + today_day + '  ' + date.getHours() + '时' + date.getMinutes() + '分';
+            if (book_remark == "") {
+                book_remark = "暂无";
+            }
+            that.data.show_back=false
+            //向后台添加一条借阅记录
+            api.ajax({
+                url: that.data.host_api + 'api/borrow_records/lend_book',
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                data: {
+                    body: {
+                        'book_id': book_id,
+                        'user_id': user_id,
+                        'book_lend_date': book_lend_date,
+                        'book_expect_date': book_expect_date,
+                        'book_state': book_state,
+                        'book_remark': book_remark
+                    }
+                }
+            }, function(ret, err) {
+                if (ret.statusCode == 200) {
+                    //修改图书的借阅次数book_count（+1）、库存量book_num（-1）
+                    api.ajax({
+                        url: that.data.host_api + 'api/books/update?where=%7B%22book_id%22%3A%22' + book_id + '%22%7D',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/json;charset=utf-8'
+                        },
+                        data: {
+                            body: {
+                                "book_count": that.data.book_infor.book_count + 1,
+                                "book_num": that.data.book_infor.book_num - 1
+                            }
+                        }
+                    }, function(ret, err) {
+                        //生成图书借阅二维码
+                        var FNScanner = api.require('FNScanner');
+                        FNScanner.encodeImg({
+                            content: '{"type":"book_lending","user_id":"' + user_id + '","book_id":"' + book_id + '"}',
+                            saveToAlbum: false,
+                            saveImg: {
+                                path: 'fs://borrow_qrcode.png',
+                                w: 400,
+                                h: 400
+                            }
+                        }, function(ret, err) {
+                            if (ret.status) {
+                                that.data.qrcode = ret.imgPath;
+                            } else {
+                                api.alert({
+                                    title: '发生意外错误',
+                                    msg: JSON.stringify(err)
+                                });
+                            }
+                        });
+                        that.data.infor_isShow = false; //隐藏图书信息
+                        that.data.qrcode_isShow = true; //显示二维码信息
+                    });
+                } else {
+                    api.alert({
+                        title: 'Database Error',
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        getDateStr(addDayCount) {
+            //获取AddDayCount天后的日期
+            var dd;
+            dd = new Date();
+            dd.setDate(dd.getDate() + addDayCount);
+            var y = dd.getFullYear();
+            var m = dd.getMonth() + 1;
+            var d = dd.getDate();
+            after_date = [];
+            after_date.push(y);
+            after_date.push(m);
+            after_date.push(d);
+            return after_date;
+        },
+        borrow_completed(e) {
+            //关闭相关页面
+            api.closeFrame({
+                name: 'book_details'
+            });
+            api.closeWin({
+                name: 'books'
+            });
+            api.openFrame({
+                name: 'home',
+                url: '../home/home.stml',
+                rect: {
+                    marginBottom: 80 //相对父页面下外边距的距离
+                },
+                reload: true
+            });
+            api.closeFrame('borrow_books');
+        }
+    }
+};
+</script>

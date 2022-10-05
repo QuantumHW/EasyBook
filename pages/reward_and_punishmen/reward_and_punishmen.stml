@@ -1,0 +1,388 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et isBack title={title} rightIcon="'../../image/help.png" ononBack={this.back} ononClickRight={this.rightFunction}></hoc-header-bar-et>
+        <view v-if={is_user}>
+            <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+                <view v-for="(item, index) in mydata">
+                    <view class="view_2" v-if={item.record_type}>
+                        <view class="view_3">
+                            <view class="view_4 view_6">
+                                <avm-space direction="vertical"><text class="text_1">{item.record_title}</text>
+                                    <text class="text_2">{item.record_date}</text>
+                                </avm-space>
+                            </view>
+                            <view class="view_5"><text class="text_3 text_9">{item.record_content}</text>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="view_2" v-else>
+                        <view class="view_3 view_7">
+                            <view class="view_4 view_8">
+                                <avm-space direction="vertical"><text class="text_1">{item.record_title}</text>
+                                    <text class="text_2 text_4">{item.record_date}</text>
+                                </avm-space>
+                            </view>
+                            <view class="view_5"><text class="text_3 text_10">{item.record_content}</text>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+            </scroll-view>
+        </view>
+        <a-popup $show="show" closeable round position="bottom" style="height: 40%;">
+            <view class="view_9">
+                <avm-space direction="vertical">
+                    <view class="view_10">
+                        <text class="text_11">记录类型</text>
+                        <button class="button_2" onclick={this.switch_type}>{type_record}（点击切换）</button>
+                    </view>
+                    <view class="view_11">
+                        <text class="text_12">记录标题</text>
+                        <input adjust-position="true" id="new_title"/>
+                    </view>
+                    <view class="view_12">
+                        <text class="text_13">记录内容</text>
+                        <input adjust-position="true" id="new_content"/>
+                    </view>
+                    <view class="view_13"><text class="text_14">被登记人员(ID)</text>
+                        <input adjust-position="true" id="new_userId"/>
+                    </view>
+                </avm-space>
+                <button class="button_3" onclick={this.submit}>提交</button>
+            </view>
+        </a-popup>
+        <view v-if={is_admin}>
+            <button class="button_1" onclick={this.add_new}>新增奖励或惩罚</button>
+            <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+                <view v-for="(item, index) in mydata">
+                    <view class="view_2" v-if={item.record_type}>
+                        <view class="view_3">
+                            <view class="view_4 view_6">
+                                <avm-space direction="vertical"><text class="text_1">{item.record_title}</text>
+                                    <text class="text_2">{item.record_date}</text>
+                                </avm-space>
+                            </view>
+                            <view class="view_5"><text class="text_3 text_7">{item.record_content}</text>
+                                <text class="text_5">奖励对象:{item.record_user}</text>
+                                <button class="avm-button_1" onclick={this.cancel} data_id={item.id}>取消奖励</button>
+                            </view>
+                        </view>
+                    </view>
+                    <view class="view_2" v-else>
+                        <view class="view_3 view_7">
+                            <view class="view_4 view_8">
+                                <avm-space direction="vertical"><text class="text_1">{item.record_title}</text>
+                                    <text class="text_2 text_4">{item.record_date}</text>
+                                </avm-space>
+                            </view>
+                            <view class="view_5"><text class="text_3 text_8">{item.record_content}</text>
+                                <text class="text_6">惩罚对象:{item.record_user}</text>
+                                <button class="avm-button_1" onclick={this.cancel} data_id={item.id}>取消惩罚</button>
+                            </view>
+                        </view>
+                    </view>
+                </view>
+                
+            </scroll-view>
+            
+            
+        </view>
+
+
+
+    </view>
+</template>
+<script>
+import APopup from "../../components/act/a-popup/a-popup.stml";
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/space";
+import "../../components/avm-ui/button";
+export default {
+    name: 'reward_and_punishmen',
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            title: localStorage.getItem('islogin') == 1 ? '奖惩记录' : '奖惩管理',
+            is_user: localStorage.getItem('islogin') == 1 ? true : false,
+            is_admin: localStorage.getItem('islogin') == 2 ? true : false,
+            show: false,
+            alldata: [],
+            mydata: [],
+            type_record: "奖励",
+            avmButtonColor: "primary"
+        };
+    },
+    apiready() {
+        this.get_alldata();
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        get_alldata(e) {
+            let that = this;
+            api.ajax({
+                url: that.data.host_api + 'api/rewardpunishment_records',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                that.data.alldata = ret;
+                let temp = []; //获取当前用户的数据
+                if (that.data.is_user) {
+                    for (var i = 0; i < that.data.alldata.length; i++) {
+                        if (that.data.alldata[i].record_user == localStorage.getItem('user_id')) {
+                            temp.push(that.data.alldata[i]);
+                        }
+                    }
+                } else {
+                    for (var i = 0; i < that.data.alldata.length; i++) {
+                        if (that.data.alldata[i].record_admin == localStorage.getItem('user_id')) {
+                            temp.push(that.data.alldata[i]);
+                        }
+                    }
+                }
+                that.data.mydata = temp;
+            });
+        },
+        cancel(e) {
+            //取消惩罚或奖励
+            let that = this;
+            let id = e.target.attributes.data_id;
+            api.confirm({
+                title: '确认删除',
+                msg: '确定删除该条记录吗？这将会取消相应读者的奖励或惩罚',
+                buttons: ['确定', '点错了']
+            }, function(ret, err) {
+                var index = ret.buttonIndex;
+                if (index == 1) {
+                    api.ajax({
+                        url: that.data.host_api + 'api/rewardpunishment_records/del_record',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: {
+                            values: {
+                                "id": id
+                            }
+                        }
+                    }, function(ret, err) {
+                        api.alert({
+                            title: "删除成功",
+                            msg: "该条奖惩记录已删除"
+                        });
+                        api.closeWin();
+                    });
+                }
+            });
+        },
+        add_new(e) {
+            //新增惩罚或奖励
+            this.data.show = true;
+        },
+        rightFunction(e) {},
+        switch_type(e) {
+            if (this.data.type_record == "奖励") {
+                this.data.type_record = "惩罚";
+            } else {
+                this.data.type_record = "奖励";
+            }
+        },
+        submit(e) {
+            //提交新增内容
+            let that = this
+            var date = new Date();
+            var today_year = date.getFullYear();
+            var today_month = date.getMonth() + 1;
+            var today_day = date.getDate();
+
+            var new_type=this.data.type_record == "奖励"?1:0;
+            var new_title=$("#new_title").value;
+            var new_content=$("#new_content").value;
+            var new_userId=$("#new_userId").value;
+            var today_date=today_year+"年"+today_month+"月"+today_day+"日"
+
+
+             if (new_title == '' || new_content == '' || new_userId == '') {
+                api.toast({
+                    msg: '请完整填写所有信息',
+                    location: "bottom"
+                });
+            } else {
+                api.ajax({
+                    url: that.data.host_api + 'api/rewardpunishment_records',
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    data: {
+                        body: {
+                            "record_type": new_type,
+                            "record_title": new_title,
+                            "record_content": new_content,
+                            "record_admin":localStorage.getItem('user_id'),
+                            "record_user": new_userId,
+                            "record_date": today_date,
+                        }
+                    }
+                }, function(ret, err) {
+                    api.alert({
+                        title: "添加成功",
+                        msg: "成功新增一条奖惩记录"
+                    });
+                    api.closeWin();
+                });
+            }
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000
+}
+.view_3 {
+    background-color: #B8E986;
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    flex-direction: row;
+}
+.view_4 {
+    border-style: solid;
+    border-left-width: 10px;
+    border-top-width: 10px;
+    border-right-width: 10px;
+    border-bottom-width: 10px;
+    border-color: #00000000
+}
+.view_5 {
+    border-color: #00000000;
+    border-style: solid;
+    border-width: 10px
+}
+.text_1 {
+    color: #FFFFFF;
+    font-size: 20px
+}
+.text_2 {
+    color: #417505
+}
+.text_3 {
+    flex-wrap: wrap
+}
+.view_7 {
+    background-color: #F5A623
+}
+.text_4 {
+    color: #D0021B
+}
+.view_6 {
+    width: 50%
+}
+.view_8 {
+    width: 50%
+}
+.text_5 {
+    color: #FFFFFF
+}
+.text_6 {
+    color: #FFFFFF
+}
+.text_7 {
+    flex-wrap: nowrap;
+    color: #417505
+}
+.text_8 {
+    flex-wrap: nowrap;
+    color: #D0021B
+}
+.avm-button_1 {
+    width: 100px;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #417505;
+    color: #417505
+}
+.button_1 {
+    border-style: solid;
+    border-color: #4A90E2;
+    border-width: 5px;
+    font-size: 18px;
+    color: #FFFFFF;
+    background-color: #4A90E2B0
+}
+.text_9 {
+    color: #417505
+}
+.text_10 {
+    color: #D0021B
+}
+.view_9 {
+    border-style: solid;
+    border-width: 50px;
+    border-color: #00000000;
+    font-size: 20px
+}
+.view_10 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.text_11 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.view_11 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.text_12 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.view_12 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.text_13 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.view_13 {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between
+}
+.text_14 {
+    font-size: 18px;
+    color: #4A90E2
+}
+.avm-radio_2 {
+    flex-direction: row
+}
+.button_2 {
+    width: 150px;
+    color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #4A90E2
+}
+.button_3 {
+    color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #4A90E2;
+    border-radius: 20px
+}
+</style>

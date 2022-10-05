@@ -1,0 +1,141 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et title="图书管理" isBack rightIcon="../../image/add.png" ononBack={this.back} ononClickRight={this.add_new}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_3" v-for="(item, index) in allbooks">
+                <view class="view_2">
+                    <view class="view_5">
+                        <view class="view_4">
+                            <image thumbnail="true" src={{item.book_image }} />
+                        </view>
+                        <view class="view_6"><text class="text_1">《{{item.book_name }}》</text>
+                            <text class="text_2">作者：{{item.book_author }}</text>
+                            <text>ISBN编号：{{item.book_id }}</text>
+                        </view>
+                    </view>
+                    <view>
+                        <avm-space direction="vertical">
+                            <button class="button_2" data_infor={item} onclick={this.edit}>编辑</button>
+                            <button class="button_1" data_infor={item} onclick={this.remove}>下架</button>
+                        </avm-space>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import "../../components/avm-ui/space";
+import "../../components/avm-ui/button";
+import "../../components/feature-component/hoc-header-bar-et.stml";
+export default {
+    name: 'book_management',
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            allbooks: JSON.parse(localStorage.getItem('allbook_data'))
+        };
+    },
+    apiready(){
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        edit(e) {
+            //编辑图书
+            book_infor = e.target.attributes.data_infor;
+            api.openWin({
+                name: 'edit_book',
+                url: '../edit_book/edit_book.stml',
+                pageParam: {
+                    book_infor: JSON.stringify(book_infor)
+                }
+            });
+        },
+        remove(e) {
+            //下架（删除）图书
+            let that = this;
+            book_infor = e.target.attributes.data_infor;
+            api.confirm({
+                title: '请谨慎操作',
+                msg: '确认下架《' + book_infor.book_name + "》吗？这将会导致该图书的所有数据被移除，且无法借阅",
+                buttons: ['确定', '点错了']
+            }, function(ret, err) {
+                var index = ret.buttonIndex;
+                if (index == 1) {
+                    api.ajax({
+                        url: that.data.host_api + 'api/books/del_book',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: {
+                            values: {
+                                "book_id": book_infor.book_id
+                            }
+                        }
+                    }, function(ret, err) {
+                        api.alert({
+                            title: "下架成功",
+                            msg: "图书《" + book_infor.book_name + "》已从图书馆中移除"
+                        });
+                        api.closeWin();
+                    });
+                }
+            });
+        },
+        add_new(e) {
+            api.openWin({
+                name: 'add_book',
+                url:'../add_book/add_book.stml'
+            })
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%
+}
+.view_2 {
+    flex-direction: row
+}
+.view_3 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #00000000
+}
+.view_4 {
+    width: 25%
+}
+.view_5 {
+    flex-direction: row;
+    width: 80%
+}
+.text_1 {
+    color: #4A90E2;
+    font-size: 20px
+}
+.view_6 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000
+}
+.text_2 {
+    font-size: 20px
+}
+.button_1 {
+    color: #D0021B;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #D0021B
+}
+.button_2 {
+    color: #4A90E2;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #4A90E2
+}
+</style>

@@ -1,0 +1,41 @@
+<template>
+    <view class="view_1">
+        <youpin-search
+            onclose="close"
+            placeholder="请输入图书关键词"
+            keywords=""
+            hiddenNum="5"
+            onemptykeywords="emptykeywords"
+            onsubmit="submit">
+        </youpin-search>
+
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+</style>
+<script>
+import '../../components/youpin-search.stml';
+export default {
+    name: 'search',
+    apiready() {},
+    data() {
+        return {};
+    },
+    methods: {
+        close(){
+            api.closeFrame()
+        },
+        submit(){
+
+        },
+        emptykeywords(){
+            //提交内容为空时
+        }
+    }
+};
+</script>

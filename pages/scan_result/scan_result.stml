@@ -1,0 +1,31 @@
+<template>
+    <view class="view_1">
+    </view>
+</template>
+<script>
+export default {
+    name: 'scan_result',
+    apiready() {
+        let ACScanner = api.require('ACScanner');
+        api.closeFrame({
+            name: 'scan_code'
+        });
+        ACScanner.closeScan({});
+    },
+    data() {
+        return {};
+    },
+    methods: {
+        back(e) {
+            api.closeFrame();
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+</style>

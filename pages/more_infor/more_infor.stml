@@ -1,0 +1,45 @@
+<template>
+    <view class="view_1">
+
+        <view>
+            <hoc-header-bar-et isBack title="了解更多" ononBack={this.back}></hoc-header-bar-et>
+        </view>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <hoc-aboutus-et :contents="hocAboutusEtContents" moduleTitle="项目组成员"></hoc-aboutus-et>
+            <hoc-aboutus-et :contents="hocAboutusEtContents_788" moduleTitle="产品定位"></hoc-aboutus-et>
+            <hoc-advantage-list-es list={["../../image/position_1.png", "../../image/position_2.png" , "../../image/position_3.png" , "../../image/position_4.png" ]}></hoc-advantage-list-es>
+        </scroll-view>
+    </view>
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/feature-component/hoc-aboutus-et.stml";
+import "../../components/feature-component/hoc-advantage-list-es.stml";
+export default {
+    name: 'more_infor',
+    data() {
+        return {
+            hocAboutusEtContents: [{
+                value: "<p class='content-text'>张军、黄雯、贾清、邱珊、杨雪、席思蝶、蒲莹</p>"
+            }, {
+                value: "<img src='https://ebookapp-1309407769.cos.ap-chengdu.myqcloud.com/APPdata/banner_3.png' style='height: 194px; width: 100%; margin: 15px 0;'/>"
+            }],
+            hocAboutusEtContents_788: [{
+                value: "<p class='content-text'>本产品是一款智能化图书管理软件，致力于实现图书管理的高效率、低成本、个性化、高便捷度、节能低碳和云共享，以“智慧热榜”、“数据可视化”、“便捷智能”等优势作为核心竞争力，努力推动图书管理新变革。</p>"
+            }]
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        }
+    }
+};
+</script>

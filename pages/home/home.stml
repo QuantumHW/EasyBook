@@ -1,0 +1,583 @@
+<template>
+    <view class="view_1">
+        <hoc-nav-bar-es class="hoc-nav-bar-es_1" isBack={false} msg="易图书EasyBook"></hoc-nav-bar-es>
+        <view class="view_3">
+            <view class="view_9">
+
+                <view class="view_10">
+                    <hoc-search-bar-sgm class="hoc-search-bar-sgm_1" isCancel={false} isClick placeholder="搜索馆藏图书" onsearchClick={this.openSearch}></hoc-search-bar-sgm>
+                </view>
+                <view class="view_11" @click="open_camera">
+                    <a-icon name="scanning" size="25" />
+                </view>
+            </view>
+            <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+                <hoc-swiper-sgm :list="hocSwiperSgmList"></hoc-swiper-sgm>
+                <hoc-course-menu-et :menuList="hocCourseMenuEtMenuList" onitemClick={this.menu}></hoc-course-menu-et>
+                <view v-if={{is_admin }}>
+                    <hoc-orderbtn-group-sgm :btnList="hocOrderbtnGroupSgmBtnList" title="管理" onbtnClick={this.admin_menu}></hoc-orderbtn-group-sgm>
+                </view>
+                <view class="view_12">
+                    <view class="view_13">
+                        <text class="text_3">馆藏图书词云图</text>
+                    </view>
+                    <view class="view_14">
+                        <image thumbnail="true" src="https://ebookapp-1309407769.cos.ap-chengdu.myqcloud.com/APPdata/wordcloud.png" />
+                    </view>
+                </view>
+                <view class="view_4" v-if={{is_user }}>
+                    <hoc-aboutus-et :contents="hocAboutusEtContents" moduleTitle="我的书架"></hoc-aboutus-et>
+                    <view class="view_5">
+                        <view v-if={{nodata_isShow }}>
+                            <hoc-no-data-et title="你的书架还是空的喔"></hoc-no-data-et>
+                        </view>
+
+                        <scroll-view class="scroll-view_1" scroll-y={false} show-scrollbar={false} bounces="true" scroll-enabled="true" scroll-x>
+                            <view v-for="(item, index) in bookshelf" class="view_6" data_infor={{item }} onclick={this.bookshelf_details}>
+                                <view class="view_7">
+                                    <image thumbnail="true" src={{item.book_image }} />
+                                </view>
+                                <view class="view_8">
+                                    <text class="text_2">《{{item.book_name }}》</text>
+                                </view>
+                            </view>
+                        </scroll-view>
+                    </view>
+                </view>
+
+
+            </scroll-view>
+        </view>
+        <lanyun-update-app v-if={{is_update }} @closeCall="clickUpdateBtn" type="style2" title="有新的更新可用" content={{update_content }}></lanyun-update-app>
+        <a-popup $show="show" closeable round position="bottom" style="height: 30%;">
+            <view class="view_2">
+                <text class="demo-content">榜单依据图书借阅次数等数据生成，可在一定程度上反应相关图书的受欢迎程度</text>
+            </view>
+        </a-popup>
+    </view>
+
+</template>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    justify-content: center;
+    flex-direction: row;
+    align-items: baseline;
+    height: 10%
+}
+.text_1 {
+    font-size: 20px
+}
+
+.view_3 {
+    height: 100%
+}
+.view_4 {
+    flex-direction: column
+}
+.scroll-view_1 {
+    flex-direction: row
+}
+.view_5 {
+    border-left-style: solid;
+    border-left-width: 20px;
+    border-left-color: #00000000;
+    border-right-style: solid;
+    border-right-width: 20px;
+    border-right-color: #00000000
+}
+.view_6 {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 40%;
+    border-left-style: none;
+    border-right-style: solid;
+    border-right-width: 20px;
+    border-right-color: #00000000
+}
+.view_7 {
+    width: 100%
+}
+.view_8 {
+    align-items: baseline;
+    justify-content: center
+}
+.text_2 {
+    color: #4A90E2
+}
+.view_9 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start
+}
+
+.view_10 {
+    width: 90%
+}
+.view_11 {
+    border-right-style: solid;
+    border-right-width: 20px;
+    border-right-color: #00000000
+}
+.view_12 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF00;
+    align-items: center
+}
+.text_3 {
+    color: #4A90E2
+}
+.view_13 {
+    align-items: center
+}
+.view_14 {
+    align-items: center;
+    width: 80%
+}
+</style>
+<script>
+import "../../components/feature-component/hoc-nav-bar-es.stml";
+import "../../components/feature-component/hoc-swiper-sgm.stml";
+import "../../components/feature-component/hoc-course-menu-et.stml";
+import "../../components/feature-component/hoc-search-bar-sgm.stml";
+import "../../components/feature-component/hoc-aboutus-et.stml";
+import AIcon from "../../components/act/a-icon";
+import "../../components/feature-component/hoc-orderbtn-group-sgm.stml";
+import '../../components/lanyun-update-app.stml';
+import "../../components/feature-component/hoc-no-data-et.stml";
+import APopup from "../../components/act/a-popup/a-popup.stml";
+export default {
+    name: 'home',
+    apiready() {
+        this.checkUpdate(); //检查更新
+        api.setStatusBarStyle({
+            style: 'dark'
+        });
+        localStorage.setItem('host_api', 'https://a6104981742387-dev.apicloud-saas.com/');
+        this.getAllbooks();
+        this.getAllWeb();
+        this.getHotlist(5);
+        if (localStorage.getItem('islogin') == '1') {
+            //普通用户
+            this.getBookself();
+        }
+        else if(localStorage.getItem('islogin') == '2'){
+            //管理员
+            this.getDocumentDelivery_Pending();
+            //获取所有读者信息
+            api.ajax({
+                url: this.data.host_api + 'api/users',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                //存储所有读者的账户信息
+                localStorage.setItem('alluser',ret)
+            });
+        }
+    },
+    data() {
+        return {
+            show: false,
+            host_api: 'https://a6104981742387-dev.apicloud-saas.com/',
+            is_user: localStorage.getItem('islogin') == '1' ? true : false,
+            is_admin: localStorage.getItem('islogin') == '2' ? true : false,
+            is_update: false,
+            bookshelf: [],
+            nodata_isShow: false,
+            //书架,存储读者已经借阅的书籍
+            update_content: '',
+            //更新提示语
+            hocSwiperSgmList: [{
+                title: "1",
+                icon: "../../image/banner_1.png"
+            }, {
+                title: "2",
+                icon: "../../image/banner_2.png"
+            }, {
+                title: "3",
+                icon: "../../image/banner_3.png"
+            }, {
+                title: "4",
+                icon: "../../image/banner_4.png"
+            }],
+            hocCourseMenuEtMenuList: [{
+                id: 0,
+                name: "实时热榜",
+                image: "../../image/hot_list.png"
+            }, {
+                id: 1,
+                name: "所有图书",
+                image: "../../image/bookshelf.png"
+            }, {
+                id: 2,
+                name: "文献传递",
+                image: "../../image/transfer.png"
+            }, {
+                id: 3,
+                name: "学术资源",
+                image: "../../image/resource.png"
+            }],
+            hocAboutusEtContents: [],
+            hocOrderbtnGroupSgmBtnList: [{
+                id:0,
+                icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/f9598c0f83fd29b3e4ca2a4841ab0e74.png",
+                title: "读者管理",
+                curNum: 0
+            }, {
+                id:1,
+                icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/23d1c533a1a64b2729d340ddb6fb6ecf.png",
+                title: "图书管理",
+                curNum: 0
+            }, {
+                id:2,
+                icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/23d1c533a1a64b2729d340ddb6fb6ecf.png",
+                title: "图书征订",
+                curNum: 0
+            }, {
+                id:3,
+                icon: "http://ae8b3ee28597856d3283.qiniucdn.apicloud-system.com/apicloud/23d1c533a1a64b2729d340ddb6fb6ecf.png",
+                title: "文献传递",
+                curNum: 0
+            }]
+        };
+    },
+    methods: {
+        menu(e) {
+            if (e.detail.id == 0) {
+                //实时热榜
+                api.openWin({
+                    name: 'hot_list',
+                    url: '../hot_list/hot_list.stml',
+                    reload: true
+                });
+            } else if (e.detail.id == 1) {
+                //所有图书
+                api.openWin({
+                    name: 'books',
+                    url: '../books/books.stml',
+                    reload: true
+                });
+            } else if (e.detail.id == 2) {
+                //文献传递
+                if (localStorage.getItem('islogin') == '0') {
+                    api.toast({
+                        msg: '请先登录喔~',
+                        duration: 1500,
+                        location: 'middle'
+                    });
+                } else {
+                    api.openWin({
+                        name: 'document_delivery', 
+                        url: '../document_delivery/document_delivery.stml',
+                        reload: true
+                    });
+                }
+            } else if (e.detail.id == 3) {
+                //学术资源
+                api.openWin({
+                    name: 'academic_resources',
+                    url: '../academic_resources/academic_resources.stml',
+                    reload: true
+                });
+            }
+        },
+        getAllbooks() {
+            //获取所有书籍
+            api.ajax({
+                url: this.data.host_api + 'api/books/getAllbooks',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                if (ret) {
+                    localStorage.setItem('allbook_data', ret.data);
+                } else {
+                    api.alert({
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        getAllWeb() {
+            //获取所有网站
+            api.ajax({
+                url: this.data.host_api + 'api/web_lists/getAllweb',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                if (ret) {
+                    localStorage.setItem('weblist_data', ret.data);
+                } else {
+                    api.alert({
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        getHotlist(num) {
+            //获取榜单
+            api.ajax({
+                url: this.data.host_api + 'api/books/getHotlist?num=' + num,
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                if (ret) {
+                    localStorage.setItem('hotlist_data', ret.data);
+                } else {
+                    api.alert({
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        getBookself() {
+            //查询状态为“借阅中”的书籍
+            let that = this;
+            api.ajax({
+                url: that.data.host_api + 'api/borrow_records?filter=%7B%22where%22%3A%7B%22user_id%22%3A%22' + localStorage.getItem('user_id') + '%22%2C%22book_state%22%3A0%7D%7D',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                let temp_bookshelf = [];
+                if (ret.length == 0) {
+                    //书架为空
+                    that.data.nodata_isShow = true;
+                } else {
+                    that.data.nodata_isShow = false;
+                    for (var i = 0; i < ret.length; i++) {
+                        //拿着book_id去查询更详细的书籍信息
+                        var single_book = JSON.parse(JSON.stringify(ret[i])); //实现深拷贝
+                        api.ajax({
+                            url: that.data.host_api + 'api/books?filter=%7B%22where%22%3A%7B%22book_id%22%3A%22' + single_book.book_id + '%22%7D%7D',
+                            method: 'get',
+                            headers: {
+                                'Content-Type': 'application/json;charset=utf-8'
+                            }
+                        }, function(ret, err) {
+                            single_book['book_name'] = ret[0].book_name;
+                            single_book['book_author'] = ret[0].book_author;
+                            single_book['book_image'] = ret[0].book_image;
+                            single_book['book_num'] = ret[0].book_num;
+                            var clone_single_book = JSON.parse(JSON.stringify(single_book));
+                            temp_bookshelf.push(clone_single_book);
+                        });
+                    }
+                    that.data.bookshelf = temp_bookshelf;
+                }
+            });
+        },
+        openSearch() {
+            //打开搜索页面
+            api.openFrame({
+                name: 'search',
+                url: '../search/search.stml'
+            });
+        },
+        bookshelf_details(e) {
+            //打开书架相应图书的详情页面（图书信息、还书操作等）
+            api.openFrame({
+                name: 'bookshelf_details',
+                url: '../bookshelf_details/bookshelf_details.stml',
+                pageParam: {
+                    book_infor: JSON.stringify(e.target.attributes.data_infor)
+                },
+                reload: true
+            });
+        },
+        open_camera(e) {
+            let that = this;
+            let ACScanner = api.require('ACScanner');
+            ACScanner.openScan({
+                scanAnim: {
+                    w: 200,
+                    h: 200,
+                    //扫描框颜色
+                    framColor: '#0066FF',
+                    //扫描线颜色
+                    lineColor: '#0066FF'
+                },
+                sound: 'widget://res/drop_sound_effects.wav',
+                //是否连续扫描
+                scanStill: false,
+                fixedOn: 'scan_code'
+            }, function(ret, err) {
+                if (ret) {
+                    if (ret.eventType == 'cameraError') {
+                        api.alert({
+                            title: '发生错误',
+                            msg: '摄像头访问失败，请检查相关权限'
+                        });
+                    } else if (ret.eventType == 'success') {
+                        res_type = JSON.parse(ret.content).type; //确定所扫描的二维码类型
+                        if (res_type == 'book_lending') {
+                            //借书凭证二维码
+                            if (localStorage.getItem('islogin') == '2') {
+                                //管理员
+                                api.openFrame({
+                                    name: 'scan_result',
+                                    url: '../scan_result/scan_result.stml'
+                                });
+                            } else {
+                                //普通用户或未登录人员
+                                api.alert({
+                                    title: '身份校验失败',
+                                    msg: '抱歉，您并没有权限扫描此二维码'
+                                }, function() {
+                                    api.closeFrame({
+                                        name: 'scan_code'
+                                    });
+                                    ACScanner.closeScan({});
+                                });
+                            }
+                        } else {
+                            //其他二维码
+                            api.alert({
+                                title: '无法识别',
+                                msg: '该二维码的内容被判定为无效内容'
+                            });
+                        }
+                        api.openFrame({
+                            name: 'scan_code',
+                            url: '../scan_code/scan_code.stml',
+                            delay: 200
+                        });
+                    }
+                } else {
+                    api.alert({
+                        title: '发生错误',
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        },
+        checkUpdate() {
+            //检查更新
+            var mam = api.require('mam');
+            var that = this;
+            mam.checkUpdate(function(ret, err) {
+                if (ret) {
+                    var result = ret.result;
+                    if (result.update == true && result.closed == false) {
+                        //发现更新，继续进行以下操作
+                        that.data.update_content = "最新版本号:" + result.version + ";\n" + result.updateTi;
+                        localStorage.setItem('update_infor', JSON.stringify(result)); //存储更新信息
+                        that.data.is_update = true;
+                    } else { //无更新
+                    }
+                } else {
+                    api.alert({
+                        msg: err.msg
+                    });
+                }
+            });
+        },
+        clickUpdateBtn(e) {
+            //返回点击按钮的索引 0 是立即升级  1 是忽略本次
+            if (e.detail == '0') {
+                //立即更新
+                var result = JSON.parse(localStorage.getItem('update_infor'));
+                if (api.systemType == "android") {
+                    api.download({
+                        url: result.source,
+                        report: true
+                    }, function(ret, err) {
+                        if (ret && 0 == ret.state) {
+                            /* 下载进度 */
+                            api.toast({
+                                msg: "正在下载应用" + ret.percent + "%",
+                                duration: 2000
+                            });
+                        }
+                        if (ret && 1 == ret.state) {
+                            /* 下载完成 */
+                            var savePath = ret.savePath;
+                            api.installApp({
+                                appUri: savePath
+                            });
+                        }
+                    });
+                } else if (api.systemType == "ios") {
+                    api.installApp({
+                        appUri: result.source
+                    });
+                }
+            } else { //忽略本次
+            }
+        },
+        getDocumentDelivery_Pending(e){
+            let that=this
+            //获取待处理的“文献传递”业务
+            api.ajax({
+                url: that.data.host_api + 'api/document_deliveries?filter=%7B%22where%22%3A%7B%22state%22%3A0%7D%7D',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                //存储待处理的“文献传递”业务
+                localStorage.setItem('document_pending',ret)
+                //设置角标显示的数字
+                that.data.hocOrderbtnGroupSgmBtnList[3].curNum=ret.length
+            });
+
+            //获取当前管理员账户处理过的“文献传递”业务
+            api.ajax({
+                url: that.data.host_api + 'api/document_deliveries?filter=%7B%22where%22%3A%7B%22admin_id%22%3A%22'+localStorage.getItem('user_id')+'%22%7D%7D',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                //存储当前管理员账户处理过的“文献传递”业务
+                localStorage.setItem('document_processed',ret)
+                
+            });
+        },
+        admin_menu(e) {
+            if(e.detail.id == 0){
+                //读者管理
+                api.openWin({
+                    name: 'reader_management',
+                    url:'../reader_management/reader_management.stml',
+                    reload:true
+                })
+            }else if(e.detail.id == 1){
+                //图书管理
+                api.openWin({
+                    name: 'book_management',
+                    url:'../book_management/book_management.stml',
+                    reload:true
+                })
+            }else if(e.detail.id == 2){
+                //图书征订
+                api.openWin({
+                    name: 'book_subscription',
+                    url:'../book_subscription/book_subscription.stml'
+                })
+            }else if(e.detail.id == 3){
+                //文献传递
+                api.openWin({
+                    name: 'admin_document_delivery',
+                    url:'../admin_document_delivery/admin_document_delivery.stml',
+                    reload:true
+                })
+            }
+        }
+    }
+};
+</script>

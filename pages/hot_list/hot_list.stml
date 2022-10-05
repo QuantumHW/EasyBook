@@ -1,0 +1,150 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et isBack title="图书热榜" rightIcon="../../image/help.png" ononBack={this.back} ononClickRight={this.help}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_7" v-for="(item, index) in allbooks_hotlist">
+                <view class="view_3">
+                    <view class="view_5">
+                        <button class="button_1" disabled>{{index + 1 }}</button>
+                    </view>
+                    <view class="view_4">
+                        <image thumbnail="true" src={{item.book_image }} />
+                    </view>
+                    <view class="view_6"><text class="text_1">《{{item.book_name }}》</text>
+                        <text class="text_2">作者：{{item.book_author }}</text>
+                        <text>借阅次数：{{item.book_count }}</text>
+                        <button class="button_2" onclick={this.book_details} data_index={{item.book_id }}>查看</button>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+        <a-popup $show="show" closeable round position="bottom" style="height: 20%;">
+            <view class="view_2">
+                <text class="demo-content">榜单依据图书借阅次数等数据生成，可在一定程度上反应相关图书的受欢迎程度</text>
+            </view>
+        </a-popup>
+    </view>
+
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import APopup from "../../components/act/a-popup/a-popup.stml";
+import "../../components/avm-ui/icon";
+export default {
+    name: 'hot_list',
+    apiready() {},
+    data() {
+        return {
+            show: false,
+            host_api: localStorage.getItem('host_api'),
+            allbooks_hotlist: JSON.parse(localStorage.getItem('hotlist_data'))
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        help(e) {
+            this.data.show = true;
+        },
+        book_details(e) {
+            let that = this; //查询指定图书的所有信息
+            api.ajax({
+                url: that.data.host_api + 'api/books?filter=%7B%22where%22%3A%7B%22book_id%22%3A%22' + e.currentTarget.attributes.data_index + '%22%7D%7D',
+                method: 'get',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                }
+            }, function(ret, err) {
+                if (ret) {
+                    //打开指定图书详情页面
+                    api.openFrame({
+                        name: 'book_details',
+                        url: '../book_details/book_details.stml',
+                        pageParam: {
+                            book_infor: JSON.stringify(ret[0]),
+                            isShow_1: localStorage.getItem('islogin') == '0' ? '1' : '0',
+                            is_user: localStorage.getItem('islogin') == '1' ? '1' : '0',
+                            is_admin: localStorage.getItem('islogin') == '2' ? '1' : '0'
+                        },
+                        reload: true
+                    });
+                } else {
+                    api.alert({
+                        msg: JSON.stringify(err)
+                    });
+                }
+            });
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #00000000;
+    border-top-style: solid;
+    border-top-color: #00000000;
+    border-top-width: 40px
+}
+.demo-content {
+    flex-wrap: wrap;
+    font-size: 20px;
+    color: #4A90E2
+}
+.view_3 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    flex-direction: row;
+    border-style: solid;
+    border-width: 15px;
+    border-color: #00000000;
+    background-color: #FFFFFF
+}
+.view_4 {
+    width: 20%
+}
+.view_5 {
+    align-items: baseline;
+    justify-content: center;
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000
+}
+.button_1 {
+    border-style: solid;
+    border-width: 5px;
+    border-color: #F5A623;
+    font-size: 20px;
+    color: #F5A623;
+    width: 60px
+}
+.text_1 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.button_2 {
+    border-color: #4A90E2;
+    color: #4A90E2;
+    width: 100px
+}
+.view_6 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #00000000
+}
+.text_2 {
+    color: #000000
+}
+.view_7 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #00000000
+}
+</style>

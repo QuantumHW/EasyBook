@@ -1,0 +1,411 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et isBack rightIcon="../../image/add_new.png" title="读者管理" ononBack={this.back} ononClickRight={this.add_new}></hoc-header-bar-et>
+        
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_3" v-for="(item, index) in alluser">
+                <view class="view_2">
+                    <view class="view_4">
+                        <text class="text_1">{{item.user_name }}</text>
+                        <text class="text_2">学工号：{{item.user_id }}</text>
+                    </view>
+                    <view class="view_5">
+                        <avm-space class="avm-space_1" direction="horizontal">
+                            <button class="button_1" onclick={this.modify} data_infor={{item }}>修改</button>
+                            <button class="button_2" onclick={this.delete_account} data_infor={{item }}>注销</button>
+                        </avm-space>
+                    </view>
+                </view>
+            </view>
+        </scroll-view>
+        <a-popup $show="show" closeable round position="bottom" style="height: 40%;">
+            <view class="view_6" v-if="modify_show">
+                <text class="text_3">修改读者账户信息</text>
+                <avm-space class="avm-space_2" direction="vertical" align="start" justify="start">
+                    <view class="view_7 view_10"><text class="text_4">密码</text>
+                        <checkbox-group class="checkbox-group_1" onChange={this.onchange}>
+                            <label class="label_1">
+                                <checkbox class="checkbox_1" value="reset"></checkbox>
+                                <text class="text_5">重置密码</text>
+                            </label>
+                        </checkbox-group>
+                    </view>
+                    <view class="view_7 view_8"><text class="text_4">姓名</text>
+                        <input id="user_name" class="input_1" value={{this.data.click_infor.user_name }} placeholder="修改后的姓名"></input>
+                    </view>
+                    <view class="view_7 view_9"><text class="text_4">学工号</text>
+                        <input id="user_id" class="input_2" placeholder="修改后的学工号" value={{this.data.click_infor.user_id }} />
+                    </view>
+                </avm-space>
+                <text class="text_6">注：若勾选“重置密码”，相应账户的密码将会被重置为默认密码“12345678”，请提醒读者尽快登录修改</text>
+                <button class="button_4" onclick={this.confirm}>确定修改</button>
+
+            </view>
+
+            <view class="view_11" v-if="add_show">
+                <text class="text_7">新增用户</text>
+                <avm-space class="avm-space_3" direction="vertical">
+                    <view class="view_12"><text class="text_8">学工号</text>
+                        <input id="new_id" class="input_5" adjust-position="true" />
+                    </view>
+                    <view class="view_13">
+                        <text class="text_9">姓名</text>
+                        <input id="new_name" class="input_4" adjust-position="true" />
+                    </view>
+                    <view class="view_14"><text class="text_10">密码</text>
+                        <input id="new_password" class="input_3" adjust-position="true" value="12345678" type="password" />
+                    </view>
+                </avm-space>
+                <button class="button_3" onclick={this.add_confirm}>确认新增</button>
+                <text class="text_11">注：默认密码为12345678，也可在上方输入框内修改为其他密码</text>
+            </view>
+        </a-popup>
+
+    </view>
+</template>
+<script>
+import APopup from "../../components/act/a-popup/a-popup.stml";
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/button";
+import "../../components/avm-ui/space";
+import "../../components/avm-ui/input";
+export default {
+    name: 'reader_management',
+    apiready() {},
+    data() {
+        return {
+            host_api: localStorage.getItem('host_api'),
+            alluser: JSON.parse(localStorage.getItem('alluser')),
+            //用于判断是否勾选“重置密码”
+            is_reset: false,
+            show: false,
+            add_show: false,
+            modify_show: false,
+            click_infor: {
+                user_name: '',
+                user_id: ''
+            }
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+        modify(e) {
+            //修改对应账户信息
+            this.data.click_infor.user_name = e.target.attributes.data_infor.user_name;
+            this.data.click_infor.user_id = e.target.attributes.data_infor.user_id;
+            this.data.add_show = false;
+            this.data.modify_show = true;
+            this.data.show = true;
+        },
+        delete_account(e) {
+            //注销（删除）相应账户
+            let that = this;
+            that.data.click_infor.user_name = e.target.attributes.data_infor.user_name;
+            that.data.click_infor.user_id = e.target.attributes.data_infor.user_id;
+            api.confirm({
+                title: '请谨慎操作',
+                msg: '确认注销用户' + this.data.click_infor.user_id + "吗？这将会导致该用户的账号被删除，且无法继续使用",
+                buttons: ['确定', '点错了']
+            }, function(ret, err) {
+                var index = ret.buttonIndex;
+                if (index == 1) {
+                    api.ajax({
+                        url: that.data.host_api + 'api/users/del_user',
+                        method: 'post',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        data: {
+                            values: {
+                                "user_id": that.data.click_infor.user_id
+                            }
+                        }
+                    }, function(ret, err) {
+                        api.alert({
+                            title: "注销成功",
+                            msg: "账号" + that.data.click_infor.user_id + "已无法继续使用"
+                        });
+                        api.closeWin();
+                    });
+                }
+            });
+        },
+        onchange(e) {
+            this.data.is_reset = e.detail.value[0];
+        },
+        confirm(e) {
+            let that = this;
+            var user_name_input = $("#user_name").value;
+            var user_id_input = $("#user_id").value;
+            if (user_name_input == '' || user_id_input == '') {
+                api.toast({
+                    msg: '姓名或学工号不能为空',
+                    location: 'bottom'
+                });
+            } else {
+                body_data = {
+                    "user_id": user_id_input,
+                    "user_name": user_name_input
+                };
+                if (that.data.is_reset == 'reset') {
+                    //勾选重置密码
+                    body_data['user_password'] = "12345678";
+                }
+                api.ajax({
+                    url: that.data.host_api + 'api/users/update?where=%7B%22user_id%22%3A%22' + that.data.click_infor.user_id + '%22%7D',
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    data: {
+                        body: body_data
+                    }
+                }, function(ret, err) {
+                    if (ret.count == '1') {
+                        api.alert({
+                            title: "修改成功",
+                            msg: "读者信息修改成功"
+                        });
+                        api.closeWin();
+                    } else {
+                        api.alert({
+                            title: '修改失败',
+                            msg: "可能的原因：修改后的账号已存在，不允许出现两个一样的账号"
+                        });
+                    }
+                });
+            }
+        },
+        add_new(e) {
+            //新增读者账户
+            this.data.add_show = true;
+            this.data.modify_show = false;
+            this.data.show = true;
+        },
+        add_confirm(e) {
+            let that = this;
+            var new_name_input = $("#new_name").value;
+            var new_id_input = $("#new_id").value;
+            var new_password_input = $("#new_password").value;
+            if (new_name_input == '' || new_id_input == '' || new_password_input == '') {
+                api.toast({
+                    msg: '请完整填写所有信息',
+                    location: "bottom"
+                });
+            } else {
+                api.ajax({
+                    url: that.data.host_api + 'api/users',
+                    method: 'post',
+                    headers: {
+                        'Content-Type': 'application/json;charset=utf-8'
+                    },
+                    data: {
+                        body: {
+                            "user_id": new_id_input,
+                            "user_name": new_name_input,
+                            "user_password": new_password_input
+                        }
+                    }
+                }, function(ret, err) {
+                    api.alert({
+                        title: "添加成功",
+                        msg: "成功新增一位读者"
+                    });
+                    api.closeWin();
+                });
+            }
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%
+}
+.view_2 {
+    box-shadow: 0 5px 5px rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #4A90E2B0;
+    align-items: center
+}
+.text_1 {
+    color: #FFFFFF;
+    font-size: 23px
+}
+.text_2 {
+    color: #9B9B9B
+}
+.view_3 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF
+}
+.view_4 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF00
+}
+.view_5 {
+    border-style: solid;
+    border-width: 10px;
+    border-color: #FFFFFF00;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around
+}
+.button_1 {
+    color: #F5A623;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #9B9B9B;
+    font-weight: bold
+}
+.button_2 {
+    color: #D0021B;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #9B9B9B;
+    font-weight: normal
+}
+.avm-space_1 {
+    flex-direction: row;
+    align-items: stretch
+}
+.view_6 {
+    align-items: center;
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF;
+    justify-content: center
+}
+.text_3 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.view_7 {
+    flex-direction: row;
+    align-items: center
+}
+.text_4 {
+    color: #000000;
+    font-size: 20px
+}
+.view_8 {
+    justify-content: space-between
+}
+.view_9 {
+    justify-content: space-between;
+    align-items: center
+}
+.view_10 {
+    justify-content: space-between
+}
+.input_1 {
+    color: #E24A4A80;
+    font-size: 20px
+}
+.input_2 {
+    color: #E24A4A80;
+    font-size: 20px
+}
+.avm-space_2 {
+    width: 90%;
+    justify-content: space-between;
+    align-items: stretch;
+
+}
+.button_4 {
+    border-style: solid;
+    border-color: #7ED321;
+    color: #7ED321;
+    font-size: 20px
+}
+.checkbox-group_1 {
+    align-items: baseline;
+    justify-content: space-between
+}
+.label_1 {
+    align-items: center
+}
+.text_5 {
+    color: #E24A4A80;
+    font-size: 20px
+}
+.checkbox_1 {
+    color: #E24A4A80
+}
+.text_6 {
+    color: #9B9B9B
+}
+.view_11 {
+    justify-content: center;
+    align-items: center;
+    border-style: solid;
+    border-width: 50px;
+    border-color: #FFFFFF
+}
+.text_7 {
+    font-size: 18px;
+    color: #4A90E2
+}
+.view_12 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.view_13 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.view_14 {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between
+}
+.text_8 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.text_9 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.text_10 {
+    font-size: 20px;
+    color: #4A90E2
+}
+.avm-space_3 {
+    justify-content: space-between;
+    width: 90%
+}
+.input_3 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.input_4 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.input_5 {
+    color: #4A90E2;
+    font-size: 18px
+}
+.button_3 {
+    color: #4A90E2;
+    font-size: 20px;
+    border-radius: 20px;
+    width: 100%;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #4A90E2
+}
+.text_11 {
+    color: #9B9B9B
+}
+</style>

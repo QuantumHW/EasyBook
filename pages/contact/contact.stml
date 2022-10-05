@@ -1,0 +1,44 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et title="联系我们" isBack ononBack={this.back}></hoc-header-bar-et>
+        <hoc-form-list-et :infoList="hocFormListEtInfoList" moduleName="您可以通过以下方式找到我们" ></hoc-form-list-et>
+        <hoc-order-address-sgm area="四川省成都市" detailAddress="新都区新都大道8号" consignee="西南石油大学" phone=""></hoc-order-address-sgm>
+    </view>
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/feature-component/hoc-form-list-et.stml";
+import "../../components/feature-component/hoc-order-address-sgm.stml";
+export default {
+    name: 'contact',
+    data() {
+        return {
+            hocFormListEtInfoList: [{
+                label: "E-mail",
+                content: "i@huangwen.work"
+            }, {
+                label: "QQ",
+                content: "1415821217"
+            }, {
+                label: "Blog",
+                content: "https://myblog.quantumcloud.top"
+            }, {
+                label: "GitHub",
+                content: "https://github.com/QuantumHW"
+            }]
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeWin();
+        },
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+</style>

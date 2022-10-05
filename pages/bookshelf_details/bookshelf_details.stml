@@ -1,0 +1,106 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et class="hoc-header-bar-et_1" title="我的图书" isBack ononBack={this.back}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_2">
+                <view class="view_3">
+                    <image thumbnail="true" src={{book_infor.book_image }} />
+                </view>
+                <view class="view_4">
+                    <text class="text_2">《{{book_infor.book_name }}》</text>
+                    <text>作者：{{book_infor.book_author }}</text>
+                    <text>ISBN编号：{{book_infor.book_id }}</text>
+                    <text class="text_3">您于{{book_infor.book_lend_date }}借阅此书</text>
+                    <text class="text_1">需在{{book_infor.book_expect_date }}前归还</text>
+                </view>
+            </view>
+            <view class="view_6">
+                <view class="view_5">
+                    <button class="button_1" onclick={this.return_book}>归还图书</button>
+                </view>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+import "../../components/avm-ui/button";
+export default {
+    name: 'bookshelf_details',
+    data() {
+        return {
+            book_infor: JSON.parse(api.pageParam.book_infor)
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeFrame();
+        },
+        return_book(e) {
+            let that =this
+            api.openFrame({
+                name: 'return_books',
+                url:'../return_books/return_books.stml',
+                pageParam:{
+                    book_infor: JSON.stringify(that.data.book_infor)
+                },
+                reload:true
+            })
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.hoc-header-bar-et_1 {
+    align-items: center
+}
+.view_2 {
+    flex-direction: row
+}
+.view_3 {
+    width: 35%;
+    border-style: solid;
+    border-width: 20px;
+    border-color: #FFFFFF
+}
+.view_4 {
+    border-top-style: solid;
+    border-top-width: 20px;
+    border-top-color: #00000000;
+    border-right-style: solid;
+    border-right-color: #FFFFFF00;
+    border-right-width: 20px;
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column
+}
+.text_1 {
+    color: #F5A623
+}
+.text_2 {
+    font-size: 16px
+}
+.text_3 {
+    color: #4A90E2
+}
+.view_5 {
+    width: 50%
+}
+.view_6 {
+    justify-content: flex-start;
+    align-items: center
+}
+.button_1 {
+    border-style: solid;
+    border-color: #4A90E2;
+    border-width: 2px;
+    color: #4A90E2;
+    font-size: 15px;
+    font-weight: bold
+}
+</style>

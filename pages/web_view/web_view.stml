@@ -1,0 +1,44 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et isBack title={{web_data.web_name}} rightIcon="../../image/help.png" ononBack={this.back}></hoc-header-bar-et>
+    </view>
+</template>
+<script>
+import "../../components/feature-component/hoc-header-bar-et.stml";
+export default {
+    name: 'web_view',
+    apiready() {
+        let that=this
+        api.openFrame({
+            name: 'website',
+            url: that.data.web_data.web_url,
+            rect: {
+                x: 0,
+                y: 0,
+                w: 'auto',
+                marginTop: 90 //距离顶部的距离
+            }
+        });
+    },
+    data() {
+        return {
+            web_data: JSON.parse(api.pageParam.web_data)
+        };
+    },
+    methods: {
+        back(e) {
+            api.closeFrame({
+                name:'website'
+            })
+            api.closeWin();
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+</style>

@@ -1,0 +1,161 @@
+<template>
+    <view class="view_1">
+        <hoc-header-bar-et title="编辑图书" rightIcon="../../image/help.png" isBack ononBack={this.back}></hoc-header-bar-et>
+        <scroll-view scroll-y="true" show-scrollbar="true" bounces="true" scroll-enabled="true">
+            <view class="view_2">
+                <avm-space direction="vertical">
+                    <view class="view_3"><text class="text_1 text_2">图书名称</text>
+                        <input adjust-position="true" value={{book_infor.book_name }} id="book_name" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_3">作者</text>
+                        <input adjust-position="true" value={{book_infor.book_author }} id="book_author" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_4">ISBN编号</text>
+                        <input adjust-position="true" value={{book_infor.book_id }} id="book_id" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_7">图书类别</text>
+                        <input adjust-position="true" value={{book_infor.book_class }} id="book_class" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_6">图书关键词</text>
+                        <input adjust-position="true" value={{book_infor.book_keyword }} id="book_keyword" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_5">单次最大可借时长（天）</text>
+                        <input adjust-position="true" value={{book_infor.book_maxtime }} id="book_maxtime" />
+                    </view>
+                    <view class="view_3 view_4 view_5"><text class="text_1 text_10">封面地址</text>
+                        <input adjust-position="true" value={{book_infor.book_image }} id="book_image" />
+                    </view>
+                    <view class="view_3 view_4"><text class="text_1 text_9">出版日期</text>
+                        <input adjust-position="true" value={{book_infor.book_date }} id="book_date" />
+                    </view>
+                    <view class="view_3"><text class="text_1 text_8">库存数量</text>
+                        <input adjust-position="true" value={{book_infor.book_num }} id="book_num" />
+                    </view>
+                </avm-space>
+                <button class="button_1" onclick={this.confirm}>确认修改</button>
+            </view>
+        </scroll-view>
+    </view>
+</template>
+<script>
+import "../../components/avm-ui/space";
+import "../../components/avm-ui/button";
+import "../../components/feature-component/hoc-header-bar-et.stml";
+export default {
+    name: 'edit_book',
+    data() {
+        return {
+            book_infor: JSON.parse(api.pageParam.book_infor),
+            host_api: localStorage.getItem('host_api'),
+        };
+    },
+    methods: {
+        confirm(e) {
+            //确认修改
+            let that = this
+            api.ajax({
+                url: that.data.host_api + 'api/books/update?where=%7B%22book_id%22%3A%22' + that.data.book_infor.book_id + '%22%7D',
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                data: {
+                    body: {
+                        "book_name": $("#book_name").value,
+                        "book_author": $("#book_author").value,
+                        "book_id": $("#book_id").value,
+                        "book_class": $("#book_class").value,
+                        "book_keyword": $("#book_keyword").value,
+                        "book_maxtime": $("#book_maxtime").value,
+                        "book_image": $("#book_image").value,
+                        "book_date": $("#book_date").value,
+                        "book_num": $("#book_num").value
+                    }
+                }
+            }, function(ret, err) {
+                if (ret.count == '1') {
+                    api.alert({
+                        title: '修改成功',
+                        msg: '图书信息修改成功'
+                    });
+                    api.closeWin({
+                        name: 'book_management'
+                    });
+                    api.closeWin({
+                        name: 'book_details'
+                    })
+                    api.closeWin();
+                } else {
+                    api.toast({
+                        msg: '修改失败'
+                    });
+                }
+            });
+        },
+        back(e) {
+            api.closeWin();
+        }
+    }
+};
+</script>
+<style>
+.view_1 {
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF
+}
+.view_2 {
+    border-style: solid;
+    border-width: 20px;
+    border-color: #00000000
+}
+.view_3 {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center
+}
+.text_1 {
+    color: #4A90E2;
+    font-size: 20px
+}
+.text_2 {
+    font-size: 18px
+}
+.text_3 {
+    font-size: 18px
+}
+.text_4 {
+    font-size: 18px
+}
+.text_5 {
+    font-size: 18px
+}
+.text_6 {
+    font-size: 18px
+}
+.text_7 {
+    font-size: 18px
+}
+.view_4 {
+    font-size: 18px
+}
+.text_8 {
+    font-size: 18px
+}
+.text_9 {
+    font-size: 18px
+}
+.text_10 {
+    font-size: 18px
+}
+.text_11 {
+    font-size: 18px
+}
+.button_1 {
+    border-style: solid;
+    border-width: 2px;
+    border-color: #4A90E2;
+    color: #4A90E2;
+    font-size: 20px
+}
+</style>
